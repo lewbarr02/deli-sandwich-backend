@@ -1,0 +1,8 @@
+{
+  "name": "deli-sandwich-backend",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "openai": "^4.20.0"
+  }
+}
