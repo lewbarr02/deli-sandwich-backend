@@ -48,3 +48,4 @@ Summary:
     res.status(500).json({ error: 'Failed to generate summary' });
   }
 }
+
