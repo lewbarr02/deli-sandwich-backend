@@ -1,11 +1,10 @@
-const OpenAI = require('openai');
-// CORS patch for Deli Sandwich
+import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -48,5 +47,4 @@ Summary:
     console.error('OpenAI error:', error);
     res.status(500).json({ error: 'Failed to generate summary' });
   }
-};
- 
+}
