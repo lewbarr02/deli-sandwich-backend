@@ -1,4 +1,3 @@
-
 // routes/summary.js
 console.log("✅ summary.js route file successfully loaded");
 
@@ -6,11 +5,10 @@ require('dotenv').config();
 
 const express = require('express');
 const { google } = require('googleapis');
-const path = require('path');
 const router = express.Router();
 
 const auth = new google.auth.GoogleAuth({
-  keyFile: path.join(__dirname, '../keys/service-account.json'),
+  credentials: JSON.parse(process.env.GOOGLE_CREDS),
   scopes: ['https://www.googleapis.com/auth/spreadsheets']
 });
 
@@ -107,21 +105,21 @@ router.get('/', async (req, res) => {
     }));
 
     const formattedLeads = filtered.map(row => ({
-  name: row['Name'],
-  company: row['Company'],
-  status: row['Status'],
-  statusIcon: statusIcon[row['Status']] || '',
-  notes: row['Notes'] || '',
-  Tags: row['Tags'] || '',
-  ARR: row['ARR'] || '',
-  Size: row['Size'] || '',
-  Type: row['Type'] || '',
-  Website: row['Website'] || '',
-  City: row['City'] || '',
-  State: row['State'] || '',
-  Latitude: row['Latitude'] || '',
-  Longitude: row['Longitude'] || ''
-}));
+      name: row['Name'],
+      company: row['Company'],
+      status: row['Status'],
+      statusIcon: statusIcon[row['Status']] || '',
+      notes: row['Notes'] || '',
+      Tags: row['Tags'] || '',
+      ARR: row['ARR'] || '',
+      Size: row['Size'] || '',
+      Type: row['Type'] || '',
+      Website: row['Website'] || '',
+      City: row['City'] || '',
+      State: row['State'] || '',
+      Latitude: row['Latitude'] || '',
+      Longitude: row['Longitude'] || ''
+    }));
 
     res.render('summary', {
       dateRange,
@@ -138,7 +136,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-
 router.post('/submit', async (req, res) => {
   try {
     const client = await auth.getClient();
@@ -147,7 +144,6 @@ router.post('/submit', async (req, res) => {
     const lead = req.body;
     const id = lead.ID?.trim();
 
-    // Fetch existing sheet data
     const getRes = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
       range: SHEET_NAME
@@ -155,15 +151,14 @@ router.post('/submit', async (req, res) => {
 
     const rows = getRes.data.values;
     const headers = rows[0];
-    
-const targetRowIndex = rows.findIndex((row, i) => {
-  if (i === 0) return false; // skip header
-  const company = row[headers.indexOf("Company")]?.trim() || "";
-  const city = row[headers.indexOf("City")]?.trim() || "";
-  const state = row[headers.indexOf("State")]?.trim() || "";
-  return `${company}|${city}|${state}` === id;
-}) + 1; // Google Sheets is 1-indexed
 
+    const targetRowIndex = rows.findIndex((row, i) => {
+      if (i === 0) return false;
+      const company = row[headers.indexOf("Company")]?.trim() || "";
+      const city = row[headers.indexOf("City")]?.trim() || "";
+      const state = row[headers.indexOf("State")]?.trim() || "";
+      return `${company}|${city}|${state}` === id;
+    }) + 1;
 
     const newRow = [
       lead.Name || '',
@@ -185,7 +180,6 @@ const targetRowIndex = rows.findIndex((row, i) => {
     ];
 
     if (targetRowIndex > 0) {
-      // Update the matched row
       await sheets.spreadsheets.values.update({
         spreadsheetId: SHEET_ID,
         range: `${SHEET_NAME}!A${targetRowIndex}:P${targetRowIndex}`,
@@ -196,16 +190,15 @@ const targetRowIndex = rows.findIndex((row, i) => {
       });
       console.log("🔁 Updated existing row for:", id);
       res.status(200).send("🔁 Updated existing row");
-    } 
-else {
+    } else {
       console.warn("❌ No matching row found for:", id);
       return res.status(400).send(`❌ No matching row found for ID: ${id}`);
     }
-
 
   } catch (err) {
     console.error("❌ Sheets API error:", err);
     res.status(500).send("❌ Failed to submit via Sheets API");
   }
 });
+
 module.exports = router;
