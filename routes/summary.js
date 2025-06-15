@@ -8,7 +8,14 @@ const { google } = require('googleapis');
 const router = express.Router();
 
 const auth = new google.auth.GoogleAuth({
-  credentials: JSON.parse(process.env.GOOGLE_CREDS),
+  credentials: (() => {
+    try {
+      return JSON.parse(process.env.GOOGLE_CREDS);
+    } catch (e) {
+      console.error("❌ GOOGLE_CREDS parse failed:", e.message);
+      return {};
+    }
+  })(),
   scopes: ['https://www.googleapis.com/auth/spreadsheets']
 });
 
