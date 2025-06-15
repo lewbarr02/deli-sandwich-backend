@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Deli Sandwich</title>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="images/favicon.png" rel="icon" type="image/png"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" rel="stylesheet">
+<link href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" rel="stylesheet">
+<link href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" rel="stylesheet">
+<style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Nunito Sans', sans-serif;
+    }
+
+    #map { height: 100%; width: 100%; }
+
+    #dashboard {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.95);
+      padding: 12px 18px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      z-index: 1001;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    #dashboard label { font-weight: bold; margin-right: 5px; }
+    #dashboard select, #dashboard input[type="date"] {
+      padding: 4px 8px; font-size: 14px;
+    }
+    #dashboard .status-checkbox { margin-right: 10px; }
+    #dashboard button {
+      padding: 6px 12px; font-size: 14px; background: #444; color: white;
+      border: none; border-radius: 6px; cursor: pointer;
+    }
+
+    #legend {
+      position: absolute; bottom: 20px; right: 20px;
+      background: white; padding: 10px 14px; border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); z-index: 1000; font-size: 14px;
+    }
+
+    .legend-item {
+      display: flex; align-items: center; margin-bottom: 5px;
+    }
+
+    .legend-color {
+      width: 16px; height: 24px; margin-right: 8px;
+      background-size: contain; background-repeat: no-repeat; background-position: center;
+    }
+
+    #logo {
+      position: absolute;
+      top: -122px;
+      left: 10px;
+      height: 400px;
+      z-index: 2000;
+    }
+
+    #statsSummary {
+      position: absolute;
+      bottom: 50px;
+      left: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+      font-size: 14px;
+      z-index: 1000;
+    }
+
+    #pinCount {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.2);
+      font-size: 14px;
+      z-index: 1000;
+    }
+
+    #presentationDisplay {
+      display: none;
+      position: absolute;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      max-height: 70%;
+      overflow-y: auto;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+      z-index: 2000;
+      font-family: 'Nunito Sans', sans-serif;
+    }
+  </style>
+</link></link></link></head>
+<body>
+<img alt="Deli Sandwich Logo" id="logo" src="images/Deli_Sandwich_Logo_Large.png"/>
+<div id="dashboard">
+<div><label for="tagFilter">Tags:</label><select id="tagFilter"><option value="All">All</option></select></div>
+<div><label for="typeFilter">Type:</label><select id="typeFilter"><option value="All">All</option></select></div>
+<div><label for="cadenceFilter">Cadence:</label><select id="cadenceFilter"><option value="All">All</option></select></div>
+<div><label for="stateFilter">State:</label><select id="stateFilter"><option value="All">All</option></select></div>
+<div><label for="clusterToggle">Cluster Pins:</label><input checked="" id="clusterToggle" type="checkbox"/></div>
+<div>
+<label>Status:</label>
+<label class="status-checkbox"><input checked="" type="checkbox" value="Hot"/> Hot</label>
+<label class="status-checkbox"><input checked="" type="checkbox" value="Warm"/> Warm</label>
+<label class="status-checkbox"><input checked="" type="checkbox" value="Cold"/> Cold</label>
+<label class="status-checkbox"><input checked="" type="checkbox" value="Follow-Up"/> Follow-Up</label>
+<label class="status-checkbox"><input checked="" type="checkbox" value="Converted"/> Converted</label>
+<label class="status-checkbox"><input checked="" type="checkbox" value="Research"/> Research</label>
+<label class="status-checkbox"><input checked="" type="checkbox" value="Unspecified"/> Unspecified</label>
+</div>
+<div><label for="startDate">From:</label><input id="startDate" type="date"/>
+<label for="endDate">To:</label><input id="endDate" type="date"/></div>
+<div>
+<button id="launchPresentation">Launch Presentation Mode</button>
+<button id="exportDailyList">Daily List</button>
+<button id="resetFilters">Reset Filters</button>
+</div>
+
+<div>
+<a href="http://localhost:3000/launch-summary" target="_blank">
+<button>📊 Open Today’s Summary</button>
+</a>
+</div>
+</div>
+<div id="map"></div>
+<div id="presentationDisplay"></div>
+<div id="statsSummary">Status Breakdown: (loading...)</div>
+<div id="pinCount">Displaying 0 of 0 leads</div>
+<div id="legend">
+<div class="legend-item"><div class="legend-color" style="background-image: url('images/marker-icon-green.png');"></div>Converted</div>
+<div class="legend-item"><div class="legend-color" style="background-image: url('images/marker-icon-red.png');"></div>Hot</div>
+<div class="legend-item"><div class="legend-color" style="background-image: url('images/marker-icon-orange.png');"></div>Warm</div>
+<div class="legend-item"><div class="legend-color" style="background-image: url('images/marker-icon-yellow.png');"></div>Follow-Up</div>
+<div class="legend-item"><div class="legend-color" style="background-image: url('images/marker-icon-blue.png');"></div>Cold</div>
+<div class="legend-item"><div class="legend-color" style="background-image: url('images/marker-icon-black.png');"></div>Research</div>
+<div class="legend-item"><div class="legend-color" style="background-image: url('images/marker-icon-grey.png');"></div>Unspecified</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="leads.js"></script>
+</body>
+</html>
