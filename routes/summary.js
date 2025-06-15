@@ -23,6 +23,7 @@ const SHEET_ID = '1dXgbgJOaQRnUjBt59Ox8Wfw1m5VyFmKd8F9XmCR1VkI';
 const SHEET_NAME = 'Mapping_Tool_Master_List_Cleaned_Geocoded';
 
 router.get('/', async (req, res) => {
+  console.log("🟡 /my-summary route was hit with query:", req.query);
   try {
     const client = await auth.getClient();
     const sheets = google.sheets({ version: 'v4', auth: client });
@@ -138,7 +139,7 @@ router.get('/', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error in /my-summary route:', err);
+    console.error('❌ Error in /my-summary route:', err?.response?.data || err.message || err);
     res.status(500).send('Something went wrong.');
   }
 });
