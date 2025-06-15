@@ -22,7 +22,7 @@ const auth = new google.auth.GoogleAuth({
 const SHEET_ID = '1dXgbgJOaQRnUjBt59Ox8Wfw1m5VyFmKd8F9XmCR1VkI';
 const SHEET_NAME = 'Mapping_Tool_Master_List_Cleaned_Geocoded';
 
-router.get('/', async (req, res) => {
+router.get('/my-summary', async (req, res) => {
   console.log("🟡 /my-summary route was hit with query:", req.query);
   try {
     const client = await auth.getClient();
