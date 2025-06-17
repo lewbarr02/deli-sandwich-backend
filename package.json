@@ -14,7 +14,8 @@
     "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
-    "googleapis": "^150.0.1",
-    "node-fetch": "^3.3.2"
+    "googleapis": "^105.0.0",
+    "node-fetch": "^3.3.2",
+    "undici": "^7.10.0"
   }
 }
