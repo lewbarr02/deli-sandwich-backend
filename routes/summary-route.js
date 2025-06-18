@@ -4,7 +4,6 @@ console.log("✅ summary.js route file successfully loaded");
 require('dotenv').config();
 
 const express = require('express');
-const { google } = require('googleapis');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const router = express.Router();
@@ -49,21 +48,14 @@ router.get('/', async (req, res) => {
   try {
     const accessToken = await getAccessToken();
 
-    const sheets = google.sheets({
-      version: 'v4',
-      auth: {
-        async getRequestHeaders() {
-          return {
-            Authorization: `Bearer ${accessToken}`
-          };
+    const response = await axios.get(
+      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
         }
       }
-    });
-
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SHEET_ID,
-      range: SHEET_NAME
-    });
+    );
 
     const rows = response.data.values;
     const dateRange = `${req.query.from} – ${req.query.to}`;
@@ -117,67 +109,4 @@ router.get('/', async (req, res) => {
 
       if (tag) tagCounts[tag] = (tagCounts[tag] || 0) + 1;
       if (state) regionCounts[state] = (regionCounts[state] || 0) + 1;
-      if (obstacle) obstacleList.push({ company: row['Company'], obstacle });
-
-      if (status === 'Hot' || status === 'Warm') {
-        hotWarmNotes.push({
-          company: row['Company'],
-          status,
-          state,
-          note: row['Notes'],
-          icon: statusIcon[status] || ''
-        });
-      }
-    });
-
-    const aiInsights = [
-      `You contacted ${filtered.length} leads between ${req.query.from} and ${req.query.to}.`,
-      `${hotWarmNotes.length} were marked as Hot or Warm.`,
-      `Top states: ${Object.entries(regionCounts).sort((a,b) => b[1]-a[1]).slice(0, 2).map(e => e[0]).join(', ')}`,
-      `Frequent tags: ${Object.entries(tagCounts).sort((a,b) => b[1]-a[1]).slice(0, 2).map(e => e[0]).join(', ')}`,
-      `Notable obstacles: ${obstacleList.length} leads mentioned a blocker.`
-    ];
-
-    const tagCountsArr = Object.entries(tagCounts).map(([label, count]) => ({
-      label,
-      count,
-      icon: statusIcon[label] || '🏷️'
-    }));
-
-    const formattedLeads = filtered.map(row => ({
-      name: row['Name'],
-      company: row['Company'],
-      status: row['Status'],
-      statusIcon: statusIcon[row['Status']] || '',
-      notes: row['Notes'] || '',
-      Tags: row['Tags'] || '',
-      ARR: row['ARR'] || '',
-      Size: row['Size'] || '',
-      Type: row['Type'] || '',
-      Website: row['Website'] || '',
-      City: row['City'] || '',
-      State: row['State'] || '',
-      Latitude: row['Latitude'] || '',
-      Longitude: row['Longitude'] || ''
-    }));
-
-    res.render('summary', {
-      dateRange,
-      aiInsights,
-      tagCounts: tagCountsArr,
-      leads: formattedLeads,
-      from: req.query.from,
-      to: req.query.to
-    });
-
-  } catch (err) {
-    console.error('❌ Error in /my-summary route:', {
-      message: err.message,
-      stack: err.stack,
-      full: err
-    });
-    res.status(500).send('Something went wrong.');
-  }
-});
-
-module.exports = router;
+      if (obstacle) ob
