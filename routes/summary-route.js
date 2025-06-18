@@ -33,7 +33,8 @@ async function getAccessToken() {
     iat
   };
 
-  const signedJWT = jwt.sign(payload, rawCreds.private_key, { algorithm: 'RS256' });
+  const privateKey = rawCreds.private_key?.replace(/\\n/g, '\n');
+  const signedJWT = jwt.sign(payload, privateKey, { algorithm: 'RS256' });
 
   const response = await axios.post(GOOGLE_TOKEN_URL, {
     grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
