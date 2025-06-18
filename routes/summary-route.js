@@ -5,19 +5,32 @@ require('dotenv').config();
 
 const express = require('express');
 const { google } = require('googleapis');
+const { JWT } = require("google-auth-library");
+const crypto = require("crypto");
 const router = express.Router();
 
-const auth = new google.auth.GoogleAuth({
-  credentials: (() => {
-    try {
-      return JSON.parse(process.env.GOOGLE_CREDS);
-    } catch (e) {
-      console.error("❌ GOOGLE_CREDS parse failed:", e.message);
-      return {};
-    }
-  })(),
-  scopes: ['https://www.googleapis.com/auth/spreadsheets']
+const rawCreds = (() => {
+  try {
+    return JSON.parse(process.env.GOOGLE_CREDS);
+  } catch (e) {
+    console.error("❌ GOOGLE_CREDS parse failed:", e.message);
+    return {};
+  }
+})();
+
+// Patched JWT signer to bypass OpenSSL issues in Node 18+
+const customJwt = new JWT({
+  email: rawCreds.client_email,
+  key: rawCreds.private_key,
+  scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
 });
+customJwt.createSign = (data) => {
+  const sign = crypto.createSign("RSA-SHA256");
+  sign.update(data);
+  return sign.sign(rawCreds.private_key);
+};
+
+const auth = customJwt;
 
 const SHEET_ID = '1dXgbgJOaQRnUjBt59Ox8Wfw1m5VyFmKd8F9XmCR1VkI';
 const SHEET_NAME = 'Mapping_Tool_Master_List_Cleaned_Geocoded';
@@ -151,3 +164,4 @@ router.get('/', async (req, res) => {
 // POST route unchanged...
 
 module.exports = router;
+u
