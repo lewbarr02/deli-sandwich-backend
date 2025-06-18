@@ -159,3 +159,17 @@ router.get('/', async (req, res) => {
       tagCounts: tagCountsArr,
       leads: formattedLeads,
       from: req.query.from,
+      to: req.query.to
+    });
+
+  } catch (err) {
+    console.error('❌ Error in /my-summary route:', {
+      message: err.message,
+      stack: err.stack,
+      full: err
+    });
+    res.status(500).send('Something went wrong.');
+  }
+});
+
+module.exports = router;
