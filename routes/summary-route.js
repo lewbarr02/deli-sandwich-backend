@@ -38,8 +38,7 @@ const SHEET_NAME = 'Mapping_Tool_Master_List_Cleaned_Geocoded';
 router.get('/', async (req, res) => {
   console.log("🟡 /my-summary route was hit with query:", req.query);
   try {
-    const client = await auth.getClient();
-    const sheets = google.sheets({ version: 'v4', auth: client });
+const sheets = google.sheets({ version: 'v4', auth });
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
