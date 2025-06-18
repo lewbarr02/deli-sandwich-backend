@@ -5,8 +5,8 @@ require('dotenv').config();
 
 const express = require('express');
 const { google } = require('googleapis');
-const { JWT } = require("google-auth-library");
-const crypto = require("crypto");
+const { JWT } = require('google-auth-library');
+const crypto = require('crypto');
 const router = express.Router();
 
 const rawCreds = (() => {
@@ -18,19 +18,17 @@ const rawCreds = (() => {
   }
 })();
 
-// Patched JWT signer to bypass OpenSSL issues in Node 18+
-const customJwt = new JWT({
+// ✅ OpenSSL-safe JWT signer override
+const auth = new JWT({
   email: rawCreds.client_email,
   key: rawCreds.private_key,
   scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
 });
-customJwt.createSign = (data) => {
+auth.createSign = (data) => {
   const sign = crypto.createSign("RSA-SHA256");
   sign.update(data);
   return sign.sign(rawCreds.private_key);
 };
-
-const auth = customJwt;
 
 const SHEET_ID = '1dXgbgJOaQRnUjBt59Ox8Wfw1m5VyFmKd8F9XmCR1VkI';
 const SHEET_NAME = 'Mapping_Tool_Master_List_Cleaned_Geocoded';
@@ -38,7 +36,7 @@ const SHEET_NAME = 'Mapping_Tool_Master_List_Cleaned_Geocoded';
 router.get('/', async (req, res) => {
   console.log("🟡 /my-summary route was hit with query:", req.query);
   try {
-const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: 'v4', auth });
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
@@ -159,7 +157,5 @@ const sheets = google.sheets({ version: 'v4', auth });
     res.status(500).send('Something went wrong.');
   }
 });
-
-// POST route unchanged...
 
 module.exports = router;
