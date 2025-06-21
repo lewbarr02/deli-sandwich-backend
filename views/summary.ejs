@@ -2,152 +2,254 @@
 <html>
 <head>
   <title>Deli Sandwich Summary</title>
-  <style>
-    body {
-      font-family: 'Nunito Sans', sans-serif;
-      margin: 2rem;
-    }
-    h1, h2 {
-      color: #d35400;
-    }
-    ul {
-      list-style-type: none;
-      padding-left: 0;
-    }
-    li {
-      margin-bottom: 5px;
-    }
-    .copy-box {
-      background: #f1f1f1;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      display: inline-block;
-    }
-    button {
-      margin-left: 10px;
-      padding: 4px 10px;
-    }
-    .lead-section {
-      border-top: 2px solid #ddd;
-      margin-top: 30px;
-      padding-top: 20px;
-    }
-    .converted-boxes {
-      display: inline-table;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-    .converted-boxes div {
-      display: table-cell;
-      padding: 12px 20px;
-      text-align: center;
-      vertical-align: middle;
-    }
-    .converted-boxes h3 {
-      margin: 0;
-      font-size: 1.8rem;
-    }
-    .converted-boxes p {
-      margin: 0;
-      font-size: 0.85rem;
-      color: #555;
-    }
-    .converted-boxes .green {
-      color: green;
-    }
-    .converted-boxes .red {
-      color: #e55353;
-    }
-    .converted-boxes .orange {
-      color: #e6a600;
-    }
-    .lead-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .lead-table th, .lead-table td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    .lead-table th {
-      background-color: #f9f9f9;
-    }
-  .mini-map {
-  width: 360px;
-  height: 240px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  flex-shrink: 0;
-}
-</style>
+  <%
+// DATA FILTERS
+const convertedLeads = leads.filter(l => l.status === 'Converted');
+const hotLeads = leads.filter(l => l.status === 'Hot');
+const warmLeads = leads.filter(l => l.status === 'Warm');
+
+const arrSum = leadsArr => leadsArr.reduce((sum, l) => {
+  const raw = (l.ARR || '').toString().replace(/,/g, '');
+  return sum + (parseFloat(raw) || 0);
+}, 0);
+
+const hotARR = arrSum(hotLeads);
+const warmARR = arrSum(warmLeads);
+const CORPV = hotARR + warmARR;
+
+const pmcLeads = [...hotLeads, ...warmLeads].filter(l => l.Type === 'PMC');
+const smaLeads = [...hotLeads, ...warmLeads].filter(l => l.Type === 'SMA');
+const pmcARR = arrSum(pmcLeads);
+const smaARR = arrSum(smaLeads);
+
+const avgLeads = [...convertedLeads, ...hotLeads, ...warmLeads].filter(l => {
+  const val = l.ARR?.toString().replace(/,/g, '');
+  return val && val !== '0' && val.toLowerCase() !== 'tbd';
+});
+
+const avgARR = avgLeads.reduce((sum, l) => sum + (parseFloat(l.ARR.replace(/,/g, '')) || 0), 0);
+const avgDeal = avgLeads.length > 0 ? (avgARR / avgLeads.length) : 0;
+%>
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  body {
+    font-family: 'Nunito Sans', sans-serif;
+    margin: 2rem;
+  }
+  h1, h2 { color: #d35400; }
+  .copy-box {
+    background: #f1f1f1;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: inline-block;
+  }
+  button {
+    margin-left: 10px;
+    padding: 4px 10px;
+  }
+  .key-stats-card,
+  .ai-summary-card {
+    width: 50%;
+    min-width: 320px;
+    max-width: 600px;
+    background-color: #fefefe;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 2rem;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+  }
+  .ai-summary p {
+    margin: 0 0 10px 0;
+    line-height: 1.6;
+  }
+  .highlight {
+    font-weight: 600;
+    color: #0070f3;
+  }
+  .metrics-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  .metric-box {
+    background: #ffffff;
+    border: 2px solid #ccc;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 2px 4px 12px rgba(0,0,0,0.05);
+    text-align: center;
+  }
+  .metric-box h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+  .metric-box .big-green {
+    font-size: 2rem;
+    color: green;
+    font-weight: 800;
+  }
+  .metric-box .big-orange {
+    font-size: 1.8rem;
+    color: orange;
+    font-weight: 700;
+  }
+  .metric-box .big-red {
+    font-size: 1.8rem;
+    color: red;
+    font-weight: 700;
+  }
+  .metric-box .emoji {
+    font-size: 2rem;
+    margin: 0.3rem 0;
+  }
+  .metric-box .small-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #444;
+    margin-top: 0.3rem;
+  }
+  .lead-section {
+    border-top: 2px solid #ddd;
+    margin-top: 30px;
+    padding-top: 20px;
+  }
+  .converted-boxes {
+    display: inline-table;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .converted-boxes div {
+    display: table-cell;
+    padding: 12px 20px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .converted-boxes h3 {
+    margin: 0;
+    font-size: 1.8rem;
+  }
+  .converted-boxes p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #555;
+  }
+  .mini-map {
+    width: 360px;
+    height: 240px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+</style>
 </head>
 <body>
 
-  
 <div style="margin-bottom: 1rem;">
   <img src="/images/DeliSandwich_AI_Insights_Clean.png" alt="Deli Sandwich AI Insights" style="height: 240px;">
 </div>
 
-  <ul>
-  <% aiInsights.forEach(item => { %>
-    <li><%= item %></li>
-  <% }) %>
-  </ul>
+<%
+  let cleanAI = aiInsights[0].replace(/```html|```/g, '').trim();
+  cleanAI = cleanAI.replace(/\b(Virginia|Texas|California|Florida|Georgia|Utah|Ohio|Michigan|Illinois|New York|North Carolina|South Carolina)\b/g, '<span class="highlight">$1</span>');
+  cleanAI = cleanAI.replace(/\b(Follow-Up|Converted|Hot|Warm|Cold|Research|TBD)\b/g, '<span class="highlight">$1</span>');
+  const [highlight, ...rest] = cleanAI.split("Insights:");
+%>
 
-  <div class="copy-box">
-    <span id="summaryLink">http://localhost:3000/my-summary?from=<%= from %>&to=<%= to %></span>
-    <button onclick="copyLink()">📋 Copy Link</button>
-    <div id="copyConfirm" style="display:none;">✅ Link copied!</div>
-  </div>
-
-  <p><a href="/my-summary-pdf?from=<%= from %>&to=<%= to %>">📄 Download as PDF</a></p>
-
-  <% const convertedLeads = leads.filter(l => l.status === 'Converted');
-     const hotLeads = leads.filter(l => l.status === 'Hot');
-     const warmLeads = leads.filter(l => l.status === 'Warm');
-     const arrSum = leadsArr => leadsArr.reduce((sum, l) => {
-  const raw = (l.ARR || '').toString().replace(/,/g, '');
-  return sum + (parseFloat(raw) || 0);
-}, 0);
-  %>
-
-  <% const sections = [
-    { title: '🏆 Converted Leads', data: convertedLeads, color: 'green' },
-    { title: '🔥 Hot Leads', data: hotLeads, color: 'red' },
-    { title: '🌞 Warm Leads', data: warmLeads, color: 'orange' }
-  ];
-  sections.forEach(section => { %>
-  <div class="lead-section">
-    <h2 style="<% if (section.title.includes('Converted')) { %>color: green;<% } else if (section.title.includes('Hot')) { %>color: red;<% } %>"><%= section.title %></h2>
-    
-<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
-  <div class="converted-boxes">
-    <div>
-      <h3><%= section.data.length %></h3>
-      <p><%= section.title.split(' ')[1] %></p>
+<div class="summary-layout" style="display: flex; gap: 2rem;">
+  <div class="left-column">
+    <div class="key-stats-card">
+      <h2 style="color: #0070f3; margin-top: 0;">Key Stats</h2>
+      <div class="ai-summary"><%- highlight.trim() %></div>
     </div>
-    <div>
-      <h3 class="<%= ['hot', 'warm'].includes(section.title.toLowerCase().split(' ')[1]) ? 'green' : section.color %>">$<%= arrSum(section.data).toLocaleString() %></h3>
-      <p>ARR</p>
-    </div>
-  </div>
-  <div style="margin: 0 auto;">
-    <div class="mini-map" id="map-<%= section.title.split(' ')[1].toLowerCase() %>"></div>
-  </div>
-</div>
-</div>
-      <div>
-        <h3 class="<%= ['hot', 'warm'].includes(section.title.toLowerCase().split(' ')[1]) ? 'green' : section.color %>">$<%= arrSum(section.data).toLocaleString() %></h3>
-        <p>ARR</p>
+
+    <div class="ai-summary-card">
+      <div class="ai-summary">
+        <h2 style="color: #0070f3; margin-top: 0;">Insights</h2>
+        <div><%- rest.join("Insights:").trim() %></div>
       </div>
     </div>
+  </div>
+
+  <div class="right-column">
+    <div class="metrics-panel">
+      <div class="metric-box">
+        <h3>Cumulative Outstanding ARR Pipeline Value</h3>
+        <div class="big-green">$<%= CORPV.toLocaleString() %></div>
+      </div>
+      <div class="metric-box">
+        <h3>Moderately Trending Towards Conversion</h3>
+        <div class="big-orange"><%= ((warmARR / CORPV) * 100).toFixed(0) %>%</div>
+        <div class="small-label">$<%= warmARR.toLocaleString() %></div>
+      </div>
+      <div class="metric-box">
+        <h3>Heavily Trending Towards Conversion</h3>
+        <div class="big-red"><%= ((hotARR / CORPV) * 100).toFixed(0) %>%</div>
+        <div class="small-label">$<%= hotARR.toLocaleString() %></div>
+      </div>
+      <div class="metric-box">
+        <h3>PMC Breakdown</h3>
+        <div class="big-green"><%= ((pmcARR / CORPV) * 100).toFixed(0) %>%</div>
+        <div class="emoji">🏢</div>
+        <div class="small-label"><%= pmcLeads.length %></div>
+      </div>
+      <div class="metric-box">
+        <h3>SMA Breakdown</h3>
+        <div class="big-green"><%= ((smaARR / CORPV) * 100).toFixed(0) %>%</div>
+        <div class="emoji">🏠</div>
+        <div class="small-label"><%= smaLeads.length %></div>
+      </div>
+      <div class="metric-box">
+        <h3>Average Deal Size</h3>
+        <div class="small-label" style="font-size: 1.8rem; font-weight: 700;">$<%= Math.round(avgDeal).toLocaleString() %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="copy-box">
+  <span id="summaryLink"><%= `https://your-domain.com/my-summary?from=${from}&to=${to}` %></span>
+  <button onclick="copyLink()">📋 Copy Link</button>
+  <div id="copyConfirm" style="display:none;">✅ Link copied!</div>
+</div>
+
+<p><a href="/my-summary-pdf?from=<%= from %>&to=<%= to %>">📄 Download as PDF</a></p>
+
+<% const sections = [
+  { title: '🏆 Converted Leads', data: convertedLeads, color: 'green' },
+  { title: '🔥 Hot Leads', data: hotLeads, color: 'red' },
+  { title: '🌞 Warm Leads', data: warmLeads, color: 'orange' }
+]; %>
+
+<% sections.forEach(section => { %>
+  <div class="lead-section">
+    <h2 style="<% if (section.title.includes('Converted')) { %>color: green;<% } else if (section.title.includes('Hot')) { %>color: red;<% } %>"><%= section.title %></h2>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+      <div class="converted-boxes">
+        <div>
+          <h3><%= section.data.length %></h3>
+          <p><%= section.title.split(' ')[1] %></p>
+        </div>
+        <div>
+          <h3 class="<%= ['hot', 'warm'].includes(section.title.toLowerCase().split(' ')[1]) ? 'green' : section.color %>">$<%= arrSum(section.data).toLocaleString() %></h3>
+          <p>ARR</p>
+        </div>
+      </div>
+      <div style="margin: 0 auto;">
+        <div class="mini-map" id="map-<%= section.title.split(' ')[1].toLowerCase() %>"></div>
+      </div>
+    </div>
+
     <h3>🗂️ Lead Breakdown</h3>
     <table class="lead-table">
       <thead>
@@ -162,37 +264,33 @@
         </tr>
       </thead>
       <tbody>
-      <% section.data.forEach(lead => { %>
-        <tr>
-          <td><%= lead.name %></td>
-          <td><%= lead.company %></td>
-          <td><%= lead.Type === 'PMC' ? '🏢 PMC' : '🏠 SMA' %></td>
-          <td><%= lead.Size || '' %></td>
-          <td><%= lead.notes || '' %></td>
-          <td><%= lead.Tags || '' %></td>
-          <td>$<%= lead.ARR || '0' %></td>
-        </tr>
-      <% }) %>
+        <% section.data.forEach(lead => { %>
+          <tr>
+            <td><%= lead.name %></td>
+            <td><%= lead.company %></td>
+            <td><%= lead.Type === 'PMC' ? '🏢 PMC' : '🏠 SMA' %></td>
+            <td><%= lead.Size || '' %></td>
+            <td><%= lead.notes || '' %></td>
+            <td><%= lead.Tags || '' %></td>
+            <td>$<%= lead.ARR || '0' %></td>
+          </tr>
+        <% }) %>
       </tbody>
     </table>
   </div>
-  <% }) %>
-
-  <script>
-    function copyLink() {
-      const linkText = document.getElementById("summaryLink").textContent;
-      navigator.clipboard.writeText(linkText).then(() => {
-        document.getElementById("copyConfirm").style.display = "block";
-        setTimeout(() => {
-          document.getElementById("copyConfirm").style.display = "none";
-        }, 1500);
-      });
-    }
-  </script>
-
-
+<% }) %>
 
 <script>
+  function copyLink() {
+    const linkText = document.getElementById("summaryLink").textContent;
+    navigator.clipboard.writeText(linkText).then(() => {
+      document.getElementById("copyConfirm").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("copyConfirm").style.display = "none";
+      }, 1500);
+    });
+  }
+
   const sectionMaps = {
     converted: <%- JSON.stringify(convertedLeads) %>,
     hot: <%- JSON.stringify(hotLeads) %>,
@@ -216,7 +314,6 @@
       leads.forEach(lead => {
         const lat = parseFloat(lead.Latitude);
         const lng = parseFloat(lead.Longitude);
-
         if (!isNaN(lat) && !isNaN(lng)) {
           const marker = L.circleMarker([lat, lng], {
             radius: 8,
@@ -226,14 +323,12 @@
             opacity: 1,
             fillOpacity: 0.9
           }).addTo(map);
-
           marker.bindPopup(`<strong>${lead.company || 'Unnamed Lead'}</strong><br>${lead.city || ''}, ${lead.state || ''}`);
         }
       });
     }
   });
 </script>
-
 
 </body>
 </html>
