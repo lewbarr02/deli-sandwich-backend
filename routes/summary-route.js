@@ -256,7 +256,7 @@ Return clean HTML that preserves line breaks between highlight lines and starts 
       Longitude: row['Longitude'] || ''
     }));
 
-    res.render('summary_broken', {
+    res.render('summary', {
       dateRange,
       aiInsights,
       tagCounts: tagCountsArr,
