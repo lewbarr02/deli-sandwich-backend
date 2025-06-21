@@ -1,11 +1,26 @@
 // routes/summary.js
 console.log("✅ summary.js route file successfully loaded");
 
-require('dotenv').config();
+require("dotenv").config();
 
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const axios = require('axios');
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const axios = require("axios");
+
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+globalThis.fetch = fetch;
+
+import('node-fetch').then(module => {
+  globalThis.Headers = module.Headers;
+  globalThis.Request = module.Request;
+  globalThis.Response = module.Response;
+});
+
+const { Blob, FormData } = require('formdata-node');
+globalThis.Blob = Blob;
+globalThis.FormData = FormData;
+
+const { OpenAI } = require("openai");
 const router = express.Router();
 
 const rawCreds = (() => {
@@ -20,6 +35,8 @@ const rawCreds = (() => {
 const SHEET_ID = '1dXgbgJOaQRnUjBt59Ox8Wfw1m5VyFmKd8F9XmCR1VkI';
 const SHEET_NAME = 'Mapping_Tool_Master_List_Cleaned_Geocoded';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 async function getAccessToken() {
   const iat = Math.floor(Date.now() / 1000);
@@ -102,6 +119,23 @@ router.get('/', async (req, res) => {
     const obstacleList = [];
     const hotWarmNotes = [];
 
+    let totalConnected = 0;
+    let upgrades = 0;
+    let downgrades = 0;
+    const tagUpgradeCount = {};
+    const tagDowngradeCount = {};
+    const regionScore = {};
+
+    const statusRank = {
+      "Unspecified": 0,
+      "Research": 1,
+      "Follow-Up": 2,
+      "Cold": 3,
+      "Warm": 4,
+      "Hot": 5,
+      "Converted": 6
+    };
+
     filtered.forEach(row => {
       const tag = row['Tags'];
       const state = row['State'];
@@ -121,15 +155,83 @@ router.get('/', async (req, res) => {
           icon: statusIcon[status] || ''
         });
       }
+
+      if (row['Notes'] || row['Cadence'] || row['Tags'] || row['Status']) {
+        totalConnected++;
+      }
+
+      const prevStatus = row['Previous Status'] || 'Unspecified';
+      const prevTags = (row['Previous Tags'] || '').split(',').map(t => t.trim());
+      const currentTags = (row['Tags'] || '').split(',').map(t => t.trim());
+
+      const currRank = statusRank[status] || 0;
+      const prevRank = statusRank[prevStatus] || 0;
+
+      if (currRank > prevRank) {
+        upgrades++;
+        currentTags.forEach(tag => {
+          if (!prevTags.includes(tag)) {
+            tagUpgradeCount[tag] = (tagUpgradeCount[tag] || 0) + 1;
+          }
+        });
+      }
+
+      if (currRank < prevRank) {
+        downgrades++;
+        currentTags.forEach(tag => {
+          if (!prevTags.includes(tag)) {
+            tagDowngradeCount[tag] = (tagDowngradeCount[tag] || 0) + 1;
+          }
+        });
+      }
+
+      if (!regionScore[state]) regionScore[state] = 0;
+      if (status === "Converted") regionScore[state] += 3;
+      else if (status === "Hot") regionScore[state] += 2;
+      else if (status === "Warm") regionScore[state] += 1;
+      else if (status === "Cold") regionScore[state] -= 1;
+      else if (["Research", "Follow-Up"].includes(status)) regionScore[state] -= 0.5;
     });
 
-    const aiInsights = [
-      `You contacted ${filtered.length} leads between ${req.query.from} and ${req.query.to}.`,
-      `${hotWarmNotes.length} were marked as Hot or Warm.`,
-      `Top states: ${Object.entries(regionCounts).sort((a,b) => b[1]-a[1]).slice(0, 2).map(e => e[0]).join(', ')}`,
-      `Frequent tags: ${Object.entries(tagCounts).sort((a,b) => b[1]-a[1]).slice(0, 2).map(e => e[0]).join(', ')}`,
-      `Notable obstacles: ${obstacleList.length} leads mentioned a blocker.`
-    ];
+    const getTopKey = (obj) =>
+      Object.entries(obj).sort((a, b) => b[1] - a[1])[0]?.[0] || "None";
+
+    const topUpgradeTag = getTopKey(tagUpgradeCount);
+    const topDowngradeTag = getTopKey(tagDowngradeCount);
+
+    const sortedRegions = Object.entries(regionScore).sort((a, b) => b[1] - a[1]);
+    const strongestRegion = sortedRegions[0]?.[0] || "Unknown";
+    const weakestRegion = sortedRegions[sortedRegions.length - 1]?.[0] || "Unknown";
+
+    const fromMMDD = `${req.query.from.slice(5)}`;
+    const toMMDD = `${req.query.to.slice(5)}`;
+
+    const aiPrompt = `
+Summarize the following metrics using MM-DD formatted dates and separate the output into two parts:
+1. A highlight block with short single-sentence callouts (no actual bullets)
+2. An "Insights:" paragraph afterward.
+
+Details:
+- You engaged with ${totalConnected} leads between ${fromMMDD} and ${toMMDD}.
+- ${upgrades} leads had a status upgrade.
+- ${downgrades} leads had a status downgrade.
+- Most frequent upgrade tag: ${topUpgradeTag}.
+- Most frequent downgrade tag: ${topDowngradeTag}.
+- Strongest region: ${strongestRegion}.
+- Weakest region: ${weakestRegion}.
+
+Return clean HTML that preserves line breaks between highlight lines and starts the narrative section with the label “Insights:”
+    `;
+
+    const completion = await openai.chat.completions.create({
+      messages: [{ role: "user", content: aiPrompt }],
+      model: "gpt-4"
+    });
+
+    const aiResponse = completion.choices[0].message.content;
+    console.log("🧠 AI Response:", aiResponse);
+
+    const aiInsights = [aiResponse];
 
     const tagCountsArr = Object.entries(tagCounts).map(([label, count]) => ({
       label,
@@ -154,7 +256,7 @@ router.get('/', async (req, res) => {
       Longitude: row['Longitude'] || ''
     }));
 
-    res.render('summary', {
+    res.render('summary_broken', {
       dateRange,
       aiInsights,
       tagCounts: tagCountsArr,
