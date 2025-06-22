@@ -1,4 +1,4 @@
-<!-- ✅ LIVE RENDER CONFIRMED — v2.0 -->
+<!--  ✅ LIVE RENDER CONFIRMED — v2.0 -->
  <!DOCTYPE html>
 <html>
 <head>
@@ -151,6 +151,37 @@ const avgDeal = avgLeads.length > 0 ? (avgARR / avgLeads.length) : 0;
     border: 1px solid #ccc;
     border-radius: 6px;
     flex-shrink: 0;
+  }
+
+  /* ✅ GRIDLINE FIX for LEAD TABLES */
+  .lead-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    margin-top: 1rem;
+  }
+  .lead-table thead {
+    display: table-header-group;
+  }
+  .lead-table tbody {
+    display: table-row-group;
+  }
+  .lead-table tr {
+    display: table-row;
+  }
+  .lead-table th,
+  .lead-table td {
+    display: table-cell;
+    border: 1px solid #ccc;
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .lead-table th {
+    background-color: #f8f8f8;
+    font-weight: 600;
+    color: #333;
   }
 </style>
 </head>
