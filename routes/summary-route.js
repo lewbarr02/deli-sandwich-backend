@@ -1,23 +1,18 @@
-console.log("✅ summary.js route file successfully loaded");
+// routes/summary-route.js
+import dotenv from 'dotenv';
+import express from 'express';
+import { Pool } from 'pg';
+import { OpenAI } from 'openai';
+import fetch from 'node-fetch';
+import { Headers, FormData } from 'formdata-node';
 
-require("dotenv").config();
+dotenv.config();
 
-const express = require("express");
-const { Pool } = require("pg");
-const { OpenAI } = require("openai");
-const router = express.Router();
-
-// ✅ Polyfill fetch + Headers + FormData for OpenAI SDK
-const fetch = require('node-fetch');
-const { Headers, Request, Response } = fetch;
 globalThis.fetch = fetch;
 globalThis.Headers = Headers;
-globalThis.Request = Request;
-globalThis.Response = Response;
-
-const { Blob, FormData } = require('formdata-node');
-globalThis.Blob = Blob;
 globalThis.FormData = FormData;
+
+const router = express.Router();
 
 // 🔐 PostgreSQL setup
 const pool = new Pool({
@@ -211,4 +206,4 @@ Return clean HTML that preserves line breaks between highlight lines and starts 
   }
 });
 
-module.exports = router;
+export default router;

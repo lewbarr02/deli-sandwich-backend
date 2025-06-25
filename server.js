@@ -1,10 +1,10 @@
-// server.js
 import dotenv from 'dotenv';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 import summaryRoute from './routes/summary-route.js'; // ✅ match exact filename
+import testRoute from './routes/test-route.js';       // ✅ new test route
 
 dotenv.config();
 
@@ -23,6 +23,7 @@ app.use(express.json());
 
 // Routes
 app.use('/my-summary', summaryRoute);
+app.use('/test', testRoute); // ✅ mount new test route
 
 // Launch server
 app.listen(PORT, () => {
