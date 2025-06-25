@@ -1,109 +1,33 @@
-// routes/summary.js
 console.log("✅ summary.js route file successfully loaded");
 
 require("dotenv").config();
-
 const express = require("express");
-const jwt = require("jsonwebtoken");
-const axios = require("axios");
-
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
-globalThis.fetch = fetch;
-
-import('node-fetch').then(module => {
-  globalThis.Headers = module.Headers;
-  globalThis.Request = module.Request;
-  globalThis.Response = module.Response;
-});
-
-const { Blob, FormData } = require('formdata-node');
-globalThis.Blob = Blob;
-globalThis.FormData = FormData;
-
+const { Pool } = require("pg");
 const { OpenAI } = require("openai");
 const router = express.Router();
 
-const rawCreds = (() => {
-  try {
-    return JSON.parse(process.env.GOOGLE_CREDS);
-  } catch (e) {
-    console.error("❌ GOOGLE_CREDS parse failed:", e.message);
-    return {};
-  }
-})();
-
-const SHEET_ID = '1dXgbgJOaQRnUjBt59Ox8Wfw1m5VyFmKd8F9XmCR1VkI';
-const SHEET_NAME = 'Mapping_Tool_Master_List_Cleaned_Geocoded';
-const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+// 🔐 PostgreSQL setup
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-async function getAccessToken() {
-  const iat = Math.floor(Date.now() / 1000);
-  const exp = iat + 3600;
-
-  const payload = {
-    iss: rawCreds.client_email,
-    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
-    aud: GOOGLE_TOKEN_URL,
-    exp,
-    iat
-  };
-
-  const privateKey = rawCreds.private_key?.replace(/\\n/g, '\n');
-  const signedJWT = jwt.sign(payload, privateKey, { algorithm: 'RS256' });
-
-  const response = await axios.post(GOOGLE_TOKEN_URL, {
-    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-    assertion: signedJWT
-  });
-
-  return response.data.access_token;
-}
-
 router.get('/', async (req, res) => {
   console.log("🟡 /my-summary route was hit with query:", req.query);
+
   try {
-    const accessToken = await getAccessToken();
+    const client = await pool.connect();
+    const { from, to } = req.query;
 
-    const response = await axios.get(
-      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      }
-    );
+    const result = await client.query(`
+      SELECT * FROM leads
+      WHERE date >= $1 AND date <= $2
+    `, [from, to]);
 
-    const rows = response.data.values;
-    const dateRange = `${req.query.from} – ${req.query.to}`;
-
-    if (!rows || rows.length < 2) {
-      return res.render('summary', {
-        dateRange,
-        aiInsights: ['No data found.'],
-        tagCounts: [],
-        leads: []
-      });
-    }
-
-    const headers = rows[0];
-    const data = rows.slice(1).map(row => {
-      const obj = {};
-      headers.forEach((header, i) => {
-        obj[header] = row[i] || '';
-      });
-      return obj;
-    });
-
-    const fromDate = new Date(req.query.from);
-    const toDate = new Date(req.query.to);
-
-    const filtered = data.filter(row => {
-      const rawDate = row['Date'];
-      const d = new Date(rawDate);
-      return !isNaN(d) && d >= fromDate && d <= toDate;
-    });
+    const rows = result.rows;
+    const dateRange = `${from} – ${to}`;
 
     const statusIcon = {
       'Hot': '🔥',
@@ -136,33 +60,33 @@ router.get('/', async (req, res) => {
       "Converted": 6
     };
 
-    filtered.forEach(row => {
-      const tag = row['Tags'];
-      const state = row['State'];
-      const status = row['Status'];
-      const obstacle = row['Obstacle'];
+    rows.forEach(row => {
+      const tag = row.tags;
+      const state = row.state;
+      const status = row.status;
+      const obstacle = row.obstacle;
 
       if (tag) tagCounts[tag] = (tagCounts[tag] || 0) + 1;
       if (state) regionCounts[state] = (regionCounts[state] || 0) + 1;
-      if (obstacle) obstacleList.push({ company: row['Company'], obstacle });
+      if (obstacle) obstacleList.push({ company: row.company, obstacle });
 
       if (status === 'Hot' || status === 'Warm') {
         hotWarmNotes.push({
-          company: row['Company'],
+          company: row.company,
           status,
           state,
-          note: row['Notes'],
+          note: row.notes,
           icon: statusIcon[status] || ''
         });
       }
 
-      if (row['Notes'] || row['Cadence'] || row['Tags'] || row['Status']) {
+      if (row.notes || row.cadence || row.tags || row.status) {
         totalConnected++;
       }
 
-      const prevStatus = row['Previous Status'] || 'Unspecified';
-      const prevTags = (row['Previous Tags'] || '').split(',').map(t => t.trim());
-      const currentTags = (row['Tags'] || '').split(',').map(t => t.trim());
+      const prevStatus = row.previous_status || 'Unspecified';
+      const prevTags = (row.previous_tags || '').split(',').map(t => t.trim());
+      const currentTags = (row.tags || '').split(',').map(t => t.trim());
 
       const currRank = statusRank[status] || 0;
       const prevRank = statusRank[prevStatus] || 0;
@@ -203,8 +127,8 @@ router.get('/', async (req, res) => {
     const strongestRegion = sortedRegions[0]?.[0] || "Unknown";
     const weakestRegion = sortedRegions[sortedRegions.length - 1]?.[0] || "Unknown";
 
-    const fromMMDD = `${req.query.from.slice(5)}`;
-    const toMMDD = `${req.query.to.slice(5)}`;
+    const fromMMDD = `${from.slice(5)}`;
+    const toMMDD = `${to.slice(5)}`;
 
     const aiPrompt = `
 Summarize the following metrics using MM-DD formatted dates and separate the output into two parts:
@@ -220,8 +144,7 @@ Details:
 - Strongest region: ${strongestRegion}.
 - Weakest region: ${weakestRegion}.
 
-Return clean HTML that preserves line breaks between highlight lines and starts the narrative section with the label “Insights:”
-    `;
+Return clean HTML that preserves line breaks between highlight lines and starts the narrative section with the label “Insights:”`;
 
     const completion = await openai.chat.completions.create({
       messages: [{ role: "user", content: aiPrompt }],
@@ -229,8 +152,6 @@ Return clean HTML that preserves line breaks between highlight lines and starts 
     });
 
     const aiResponse = completion.choices[0].message.content;
-    console.log("🧠 AI Response:", aiResponse);
-
     const aiInsights = [aiResponse];
 
     const tagCountsArr = Object.entries(tagCounts).map(([label, count]) => ({
@@ -239,30 +160,32 @@ Return clean HTML that preserves line breaks between highlight lines and starts 
       icon: statusIcon[label] || '🏷️'
     }));
 
-    const formattedLeads = filtered.map(row => ({
-      name: row['Name'],
-      company: row['Company'],
-      status: row['Status'],
-      statusIcon: statusIcon[row['Status']] || '',
-      notes: row['Notes'] || '',
-      Tags: row['Tags'] || '',
-      ARR: row['ARR'] || '',
-      Size: row['Size'] || '',
-      Type: row['Type'] || '',
-      Website: row['Website'] || '',
-      City: row['City'] || '',
-      State: row['State'] || '',
-      Latitude: row['Latitude'] || '',
-      Longitude: row['Longitude'] || ''
+    const formattedLeads = rows.map(row => ({
+      name: row.name,
+      company: row.company,
+      status: row.status,
+      statusIcon: statusIcon[row.status] || '',
+      notes: row.notes || '',
+      Tags: row.tags || '',
+      ARR: row.arr || '',
+      Size: row.size || '',
+      Type: row.type || '',
+      Website: row.website || '',
+      City: row.city || '',
+      State: row.state || '',
+      Latitude: row.lat || '',
+      Longitude: row.lon || ''
     }));
+
+    client.release();
 
     res.render('summary', {
       dateRange,
       aiInsights,
       tagCounts: tagCountsArr,
       leads: formattedLeads,
-      from: req.query.from,
-      to: req.query.to
+      from,
+      to
     });
 
   } catch (err) {
