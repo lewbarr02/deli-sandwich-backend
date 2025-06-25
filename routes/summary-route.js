@@ -1,13 +1,23 @@
 console.log("✅ summary.js route file successfully loaded");
 
 require("dotenv").config();
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
-globalThis.fetch = fetch;
 
 const express = require("express");
 const { Pool } = require("pg");
 const { OpenAI } = require("openai");
 const router = express.Router();
+
+// ✅ Polyfill fetch + Headers + FormData for OpenAI SDK
+const fetch = require('node-fetch');
+const { Headers, Request, Response } = fetch;
+globalThis.fetch = fetch;
+globalThis.Headers = Headers;
+globalThis.Request = Request;
+globalThis.Response = Response;
+
+const { Blob, FormData } = require('formdata-node');
+globalThis.Blob = Blob;
+globalThis.FormData = FormData;
 
 // 🔐 PostgreSQL setup
 const pool = new Pool({
