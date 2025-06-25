@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
 
     const result = await client.query(`
       SELECT * FROM leads
-      WHERE date >= $1 AND date <= $2
+      WHERE date_added >= $1 AND date_added <= $2
     `, [from, to]);
 
     const rows = result.rows;
