@@ -1,6 +1,9 @@
 console.log("✅ summary.js route file successfully loaded");
 
 require("dotenv").config();
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+globalThis.fetch = fetch;
+
 const express = require("express");
 const { Pool } = require("pg");
 const { OpenAI } = require("openai");
