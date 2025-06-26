@@ -4,7 +4,9 @@ import express from 'express';
 import { Pool } from 'pg';
 import { OpenAI } from 'openai';
 import fetch from 'node-fetch';
-import { Headers, FormData } from 'formdata-node';
+import { FormData } from 'formdata-node';
+import { Headers } from 'undici';
+
 
 dotenv.config();
 
