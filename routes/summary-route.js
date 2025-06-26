@@ -1,4 +1,7 @@
 // routes/summary-route.js
+import { Blob } from 'buffer';
+globalThis.Blob = Blob;
+
 import dotenv from 'dotenv';
 import express from 'express';
 import { Pool } from 'pg';
