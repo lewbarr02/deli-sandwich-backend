@@ -1,4 +1,4 @@
-<!--  ✅ LIVE RENDER CONFIRMED Now — v2.0 --> 
+<!-- ✅ summary.ejs is working - June 26 test -->
  <!DOCTYPE html>
 <html>
 <head>
@@ -55,9 +55,8 @@ const avgDeal = avgLeads.length > 0 ? (avgARR / avgLeads.length) : 0;
   }
   .key-stats-card,
   .ai-summary-card {
-    width: 50%;
-    min-width: 320px;
-    max-width: 600px;
+    width: 100%;
+    max-width: 900px;
     background-color: #fefefe;
     border: 2px solid #ccc;
     border-radius: 12px;
@@ -183,6 +182,22 @@ const avgDeal = avgLeads.length > 0 ? (avgARR / avgLeads.length) : 0;
     font-weight: 600;
     color: #333;
   }
+
+  .pipeline-box .label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #555;
+    text-align: center;
+  }
+  .pipeline-box .sub-stat {
+    text-align: center;
+  }
+  .pipeline-box .big-red,
+  .pipeline-box .big-orange {
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
 </style>
 </head>
 <body>
@@ -215,19 +230,22 @@ const avgDeal = avgLeads.length > 0 ? (avgARR / avgLeads.length) : 0;
 
   <div class="right-column">
     <div class="metrics-panel">
-      <div class="metric-box">
-        <h3>Cumulative Outstanding ARR Pipeline Value</h3>
-        <div class="big-green">$<%= CORPV.toLocaleString() %></div>
-      </div>
-      <div class="metric-box">
-        <h3>Moderately Trending Towards Conversion</h3>
-        <div class="big-orange"><%= ((warmARR / CORPV) * 100).toFixed(0) %>%</div>
-        <div class="small-label">$<%= warmARR.toLocaleString() %></div>
-      </div>
-      <div class="metric-box">
-        <h3>Heavily Trending Towards Conversion</h3>
-        <div class="big-red"><%= ((hotARR / CORPV) * 100).toFixed(0) %>%</div>
-        <div class="small-label">$<%= hotARR.toLocaleString() %></div>
+      <div class="metric-box pipeline-box">
+        <h3>Pipeline Summary</h3>
+        <div class="big-green" style="margin: 0.5rem 0;">$<%= CORPV.toLocaleString() %></div>
+
+        <div style="display: flex; justify-content: space-around; margin-top: 1rem;">
+          <div class="sub-stat">
+            <div class="label">🔥 Hot Leads</div>
+            <div class="big-red"><%= ((hotARR / CORPV) * 100).toFixed(0) %>%</div>
+            <div class="small-label">$<%= hotARR.toLocaleString() %></div>
+          </div>
+          <div class="sub-stat">
+            <div class="label">🌞 Warm Leads</div>
+            <div class="big-orange"><%= ((warmARR / CORPV) * 100).toFixed(0) %>%</div>
+            <div class="small-label">$<%= warmARR.toLocaleString() %></div>
+          </div>
+        </div>
       </div>
       <div class="metric-box">
         <h3>PMC Breakdown</h3>
