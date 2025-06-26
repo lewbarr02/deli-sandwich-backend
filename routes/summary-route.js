@@ -5,13 +5,13 @@ import { Pool } from 'pg';
 import { OpenAI } from 'openai';
 import fetch from 'node-fetch';
 import { FormData } from 'formdata-node';
-import { Headers } from 'undici';
+
 
 
 dotenv.config();
 
 globalThis.fetch = fetch;
-globalThis.Headers = Headers;
+globalThis.Headers = fetch.Headers;
 globalThis.FormData = FormData;
 
 const router = express.Router();
