@@ -6,8 +6,6 @@ import { OpenAI } from 'openai';
 import fetch from 'node-fetch';
 import { FormData } from 'formdata-node';
 
-
-
 dotenv.config();
 
 globalThis.fetch = fetch;
