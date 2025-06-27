@@ -81,7 +81,7 @@ router.get('/', async (req, res) => {
       if (state) regionCounts[state] = (regionCounts[state] || 0) + 1;
       if (obstacle) obstacleList.push({ company: row.company, obstacle });
 
-      if (status === 'Hot' || status === 'Warm') {
+      if (['Hot', 'Warm'].includes(status)) {
         hotWarmNotes.push({
           company: row.company,
           status,
@@ -188,13 +188,20 @@ Return clean HTML that preserves line breaks between highlight lines and starts 
       Longitude: row.lon || ''
     }));
 
+    const hotLeads = formattedLeads.filter(l => l.status === 'Hot');
+    const warmLeads = formattedLeads.filter(l => l.status === 'Warm');
+    const convertedLeads = formattedLeads.filter(l => l.status === 'Converted');
+
     client.release();
 
-    res.render('summary', {
+    res.render('summary-v3', {
       dateRange,
       aiInsights,
       tagCounts: tagCountsArr,
-      leads: formattedLeads,
+      leads: [...hotLeads, ...warmLeads, ...convertedLeads],
+      hotLeads,
+      warmLeads,
+      convertedLeads,
       from,
       to
     });

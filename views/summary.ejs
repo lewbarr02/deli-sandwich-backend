@@ -1,5 +1,6 @@
-<!-- ✅ summary.ejs is working - June 26 test -->
+<!--  ✅ LIVE RENDER CONFIRMED Now — v2.0 --> 
  <!DOCTYPE html>
+<% throw new Error("FORCE BREAK: Is this file actually being used?") %>
 <html>
 <head>
   <title>Deli Sandwich Summary</title>
@@ -30,6 +31,15 @@ const avgLeads = [...convertedLeads, ...hotLeads, ...warmLeads].filter(l => {
 
 const avgARR = avgLeads.reduce((sum, l) => sum + (parseFloat(l.ARR.replace(/,/g, '')) || 0), 0);
 const avgDeal = avgLeads.length > 0 ? (avgARR / avgLeads.length) : 0;
+
+const pmcHot = hotLeads.filter(l => l.Type === 'PMC');
+const pmcWarm = warmLeads.filter(l => l.Type === 'PMC');
+const pmcConverted = convertedLeads.filter(l => l.Type === 'PMC');
+
+const smaHot = hotLeads.filter(l => l.Type === 'SMA');
+const smaWarm = warmLeads.filter(l => l.Type === 'SMA');
+const smaConverted = convertedLeads.filter(l => l.Type === 'SMA');
+
 %>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -247,19 +257,62 @@ const avgDeal = avgLeads.length > 0 ? (avgARR / avgLeads.length) : 0;
           </div>
         </div>
       </div>
-      <div class="metric-box">
-        <h3>PMC Breakdown</h3>
-        <div class="big-green"><%= ((pmcARR / CORPV) * 100).toFixed(0) %>%</div>
-        <div class="emoji">🏢</div>
-        <div class="small-label"><%= pmcLeads.length %></div>
-      </div>
-      <div class="metric-box">
-        <h3>SMA Breakdown</h3>
-        <div class="big-green"><%= ((smaARR / CORPV) * 100).toFixed(0) %>%</div>
-        <div class="emoji">🏠</div>
-        <div class="small-label"><%= smaLeads.length %></div>
-      </div>
-      <div class="metric-box">
+      
+  <div class="small-label">of Pipeline</div>
+  <div class="emoji">🏠</div>
+  <div class="small-label">ARR: $<%= smaARR.toLocaleString() %></div>
+  <div class="small-label">Leads: <%= smaLeads.length %></div>
+  <div class="small-label">Avg Deal: $<%= smaLeads.length > 0 ? Math.round(smaARR / smaLeads.length).toLocaleString() : '0' %></div>
+  <div class="small-label">🎯 <%= smaHot.length %> Hot / <%= smaWarm.length %> Warm / <%= smaConverted.length %> Converted</div>
+</div>
+  <div class="small-label">of Pipeline</div>
+  <div class="emoji">🏠</div>
+  <div class="small-label">ARR: $<%= smaARR.toLocaleString() %></div>
+  <div class="small-label">Leads: <%= smaLeads.length %></div>
+  <div class="small-label">Avg Deal: $<%= smaLeads.length > 0 ? Math.round(smaARR / smaLeads.length).toLocaleString() : '0' %></div>
+</div>
+      
+
+  <div class="small-label">of Pipeline</div>
+  <div class="emoji">🏠</div>
+  <div class="small-label">ARR: $<%= smaARR.toLocaleString() %></div>
+  <div class="small-label">Leads: <%= smaLeads.length %></div>
+  <div class="small-label">Avg Deal: $<%= smaLeads.length > 0 ? Math.round(smaARR / smaLeads.length).toLocaleString() : '0' %></div>
+  <div class="small-label">🎯 <%= smaHot.length %> Hot / <%= smaWarm.length %> Warm / <%= smaConverted.length %> Converted</div>
+</div>
+
+
+
+<div style="color: red; font-weight: bold;">
+  Debug PMC: Hot=<%= pmcHot.length %>, Warm=<%= pmcWarm.length %>, Converted=<%= pmcConverted.length %>
+</div>
+<div style="color: blue; font-weight: bold;">
+  Debug SMA: Hot=<%= smaHot.length %>, Warm=<%= smaWarm.length %>, Converted=<%= smaConverted.length %>
+</div>
+
+<div class="metric-box">
+  <h3>PMC Breakdown</h3>
+  <div class="big-green"><%= ((pmcARR / CORPV) * 100).toFixed(0) %>%</div>
+  <div class="small-label">of Pipeline</div>
+  <div class="emoji">🏢</div>
+  <div class="small-label">ARR: $<%= pmcARR.toLocaleString() %></div>
+  <div class="small-label">Leads: <%= pmcLeads.length %></div>
+  <div class="small-label">Avg Deal: $<%= pmcLeads.length > 0 ? Math.round(pmcARR / pmcLeads.length).toLocaleString() : '0' %></div>
+  <div class="small-label">🎯 <%= pmcHot.length %> Hot / <%= pmcWarm.length %> Warm / <%= pmcConverted.length %> Converted</div>
+</div>
+
+<div class="metric-box">
+  <h3>SMA Breakdown</h3>
+  <div class="big-green"><%= ((smaARR / CORPV) * 100).toFixed(0) %>%</div>
+  <div class="small-label">of Pipeline</div>
+  <div class="emoji">🏠</div>
+  <div class="small-label">ARR: $<%= smaARR.toLocaleString() %></div>
+  <div class="small-label">Leads: <%= smaLeads.length %></div>
+  <div class="small-label">Avg Deal: $<%= smaLeads.length > 0 ? Math.round(smaARR / smaLeads.length).toLocaleString() : '0' %></div>
+  <div class="small-label">🎯 <%= smaHot.length %> Hot / <%= smaWarm.length %> Warm / <%= smaConverted.length %> Converted</div>
+</div>
+
+<div class="metric-box">
         <h3>Average Deal Size</h3>
         <div class="small-label" style="font-size: 1.8rem; font-weight: 700;">$<%= Math.round(avgDeal).toLocaleString() %></div>
       </div>
