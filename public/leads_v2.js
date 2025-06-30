@@ -54,12 +54,11 @@ function addMarkers(data) {
     if (!isNaN(lat) && !isNaN(lon)) {
       const color = statusColors[row['Status']] || 'grey';
       const marker = L.marker([lat, lon], { icon: getIcon(color) });
-      marker.leadId = row.id;
-      marker.leadId = row.id;
 
       marker.on('click', () => {
-        marker.bindPopup(createPreviewPopup(row, marker)).openPopup();
-      });
+      const rowWithId = { ...row, id: index };
+      marker.bindPopup(createPreviewPopup(rowWithId, marker)).openPopup();
+    });
       markers.push(marker);
 
       if (usingClusters) {
@@ -482,21 +481,18 @@ function createPreviewPopup(lead, marker) {
 }
 
 function switchToEdit(id, button) {
-  console.log("🛠️ Edit triggered for ID:", id);
+  const row = allData.find(l => l.id == id);
+  if (!row) return;
 
-  const row = allData.find(l => String(l.id) === String(id));
-  if (!row) {
-    console.warn("❌ Lead row not found for ID:", id);
-    return;
-  }
+  const marker = markers.find(m => {
+    const popup = m.getPopup();
+    if (!popup) return false;
+    const content = popup.getContent();
+    if (!content || typeof content.innerHTML !== 'string') return false;
+    return content.innerHTML.includes(row['Company']);
+  });
 
-  const marker = markers.find(m => String(m.leadId) === String(id));
-  if (!marker) {
-    console.warn("❌ Marker not found for ID:", id);
-    return;
-  }
+  if (!marker) return;
 
-  console.log("✅ Found marker and row, injecting editable popup...");
   marker.setPopupContent(createEditablePopup(row));
-  marker.openPopup();
 }
