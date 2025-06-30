@@ -1,4 +1,3 @@
-console.log("✅ leads file loaded");
 // leads.js – Clean Rebuild with Presentation Mode, Daily List, and All Filters
 console.log("✅ Loaded leads_merged_with_proxy_fix.js");
 map = L.map('map').setView([37.8, -96], 4);
@@ -56,7 +55,9 @@ function addMarkers(data) {
       const color = statusColors[row['Status']] || 'grey';
       const marker = L.marker([lat, lon], { icon: getIcon(color) });
 
-      marker.bindPopup(createEditablePopup(row, marker, index));
+      marker.on('click', () => {
+        marker.bindPopup(createPreviewPopup(row, marker)).openPopup();
+      });
       markers.push(marker);
 
       if (usingClusters) {
@@ -455,3 +456,35 @@ async function submitEdits(id) {
   }
 }
 
+
+
+
+function createPreviewPopup(lead, marker) {
+  const container = document.createElement('div');
+  container.innerHTML = `
+    <strong>${lead['Company']}</strong><br>
+    <em>${lead['City']}, ${lead['State']}</em><br><br>
+    <b>Tag:</b> ${lead['Tags'] || ''}<br>
+    <b>Type:</b> ${lead['Type'] || ''}<br>
+    <b>Status:</b> ${lead['Status'] || ''}<br>
+    <b>Notes:</b> ${lead['Notes'] || ''}<br>
+    <b>Website:</b> ${lead['Website'] || ''}<br>
+    <b>Net New:</b> ${lead['Net New'] || ''}<br>
+    <b>Size:</b> ${lead['Size'] || ''}<br>
+    <b>ARR:</b> ${lead['ARR'] || ''}<br>
+    <b>Obstacle:</b> ${lead['Obstacle'] || ''}<br>
+    <b>Self Sourced:</b> ${lead['Self Sourced'] || ''}<br><br>
+    <button onclick="switchToEdit(${lead.id}, this)">✏️ Edit</button>
+  `;
+  return container;
+}
+
+function switchToEdit(id, button) {
+  const marker = markers.find(m => {
+    const content = m.getPopup()?.getContent();
+    return content && content.includes(`switchToEdit(${id}`);
+  });
+  const row = allData.find(l => l.id == id);
+  if (!row || !marker) return;
+  marker.setPopupContent(createEditablePopup(row));
+}
