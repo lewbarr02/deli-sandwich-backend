@@ -480,11 +480,18 @@ function createPreviewPopup(lead, marker) {
 }
 
 function switchToEdit(id, button) {
-  const marker = markers.find(m => {
-    const content = m.getPopup()?.getContent();
-    return content && content.includes(`switchToEdit(${id}`);
-  });
   const row = allData.find(l => l.id == id);
-  if (!row || !marker) return;
+  if (!row) return;
+
+  const marker = markers.find(m => {
+    const popup = m.getPopup();
+    if (!popup) return false;
+    const content = popup.getContent();
+    if (!content || typeof content.innerHTML !== 'string') return false;
+    return content.innerHTML.includes(row['Company']);
+  });
+
+  if (!marker) return;
+
   marker.setPopupContent(createEditablePopup(row));
 }
