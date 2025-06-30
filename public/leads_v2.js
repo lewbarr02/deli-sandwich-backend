@@ -482,9 +482,21 @@ function createPreviewPopup(lead, marker) {
 }
 
 function switchToEdit(id, button) {
+  console.log("🛠️ Edit triggered for ID:", id);
+
   const row = allData.find(l => String(l.id) === String(id));
+  if (!row) {
+    console.warn("❌ Lead row not found for ID:", id);
+    return;
+  }
+
   const marker = markers.find(m => String(m.leadId) === String(id));
-  if (!row || !marker) return;
+  if (!marker) {
+    console.warn("❌ Marker not found for ID:", id);
+    return;
+  }
+
+  console.log("✅ Found marker and row, injecting editable popup...");
   marker.setPopupContent(createEditablePopup(row));
-  marker.openPopup(); // force refresh
+  marker.openPopup();
 }
