@@ -54,6 +54,7 @@ function addMarkers(data) {
     if (!isNaN(lat) && !isNaN(lon)) {
       const color = statusColors[row['Status']] || 'grey';
       const marker = L.marker([lat, lon], { icon: getIcon(color) });
+      marker.leadId = row.id;
 
       marker.on('click', () => {
         marker.bindPopup(createPreviewPopup(row, marker)).openPopup();
@@ -481,17 +482,7 @@ function createPreviewPopup(lead, marker) {
 
 function switchToEdit(id, button) {
   const row = allData.find(l => l.id == id);
-  if (!row) return;
-
-  const marker = markers.find(m => {
-    const popup = m.getPopup();
-    if (!popup) return false;
-    const content = popup.getContent();
-    if (!content || typeof content.innerHTML !== 'string') return false;
-    return content.innerHTML.includes(row['Company']);
-  });
-
-  if (!marker) return;
-
+  const marker = markers.find(m => m.leadId == id);
+  if (!row || !marker) return;
   marker.setPopupContent(createEditablePopup(row));
 }
