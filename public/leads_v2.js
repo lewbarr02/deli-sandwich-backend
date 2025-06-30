@@ -55,6 +55,7 @@ function addMarkers(data) {
       const color = statusColors[row['Status']] || 'grey';
       const marker = L.marker([lat, lon], { icon: getIcon(color) });
       marker.leadId = row.id;
+      marker.leadId = row.id;
 
       marker.on('click', () => {
         marker.bindPopup(createPreviewPopup(row, marker)).openPopup();
@@ -481,8 +482,9 @@ function createPreviewPopup(lead, marker) {
 }
 
 function switchToEdit(id, button) {
-  const row = allData.find(l => l.id == id);
-  const marker = markers.find(m => m.leadId == id);
+  const row = allData.find(l => String(l.id) === String(id));
+  const marker = markers.find(m => String(m.leadId) === String(id));
   if (!row || !marker) return;
   marker.setPopupContent(createEditablePopup(row));
+  marker.openPopup(); // force refresh
 }
