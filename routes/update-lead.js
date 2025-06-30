@@ -47,14 +47,15 @@ router.post('/', async (req, res) => {
       `,
       [
         id,
-        tags,
-        type,
-        status,
-        notes,
-        website,
-        net_new,
-        size,
-        arr ? parseFloat(arr) : 0,
+        tags || null,
+        type || null,
+        status || null,
+        notes || null,
+        website || null,
+        net_new || null,
+        size || null,
+        arr !== undefined ? parseFloat(arr) : 0,
+        obstacle || null,
         typeof self_sourced === 'boolean' ? self_sourced : self_sourced === 'Yes'
       ]
     );
