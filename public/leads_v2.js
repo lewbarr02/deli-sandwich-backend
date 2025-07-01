@@ -57,8 +57,9 @@ function addMarkers(data) {
       marker.leadId = row.id;
       marker.leadId = row.id;
 
-      marker.on('click', () => {
-      marker.bindPopup(createPreviewPopup({ ...row, id: index }, marker)).openPopup();
+      marker.leadIndex = index;
+    marker.on('click', () => {
+      marker.bindPopup(createPreviewPopup(row, index)).openPopup();
     });
       markers.push(marker);
 
@@ -461,7 +462,7 @@ async function submitEdits(id) {
 
 
 
-function createPreviewPopup(lead, marker) {
+function createPreviewPopup(lead, index) {
   const container = document.createElement('div');
   container.innerHTML = `
     <strong>${lead['Company']}</strong><br>
@@ -481,31 +482,14 @@ function createPreviewPopup(lead, marker) {
   return container;
 }
 
-function switchToEdit(id) {
-  console.log("🛠️ Edit triggered for ID:", id);
 
-  const row = allData.find(l => String(l.id) === String(id));
-  if (!row) {
-    console.warn("❌ Lead row not found for ID:", id);
-    return;
-  }
-
-  const marker = markers.find(m => String(m.leadId) === String(id));
-  if (!marker) {
-    console.warn("❌ Marker not found for ID:", id);
-    return;
-  }
-
-  console.log("✅ Found marker and row, injecting editable popup...");
-  marker.setPopupContent(createEditablePopup(row));
-  marker.openPopup();
-}
+  
 
 
 // 🔁 Delegated listener for edit buttons in Leaflet popups
 document.addEventListener("click", function (e) {
   if (e.target && e.target.classList.contains("edit-button")) {
-    const id = e.target.getAttribute("data-lead-id");
-    switchToEdit(id);
+    const index = e.target.getAttribute("data-lead-index");
+    switchToEdit(index);
   }
 });
