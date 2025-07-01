@@ -486,6 +486,24 @@ function createPreviewPopup(lead, index) {
   
 
 
+
+function switchToEdit(index) {
+  console.log("🛠️ Edit triggered for index:", index);
+  const idx = parseInt(index);
+  const row = allData[idx];
+  const marker = markers[idx];
+
+  if (!row || !marker) {
+    console.warn("❌ Lead row or marker not found for index:", idx);
+    return;
+  }
+
+  console.log("✅ Found marker and row, injecting editable popup...");
+  marker.setPopupContent(createEditablePopup(row));
+  marker.openPopup();
+}
+
+
 // 🔁 Delegated listener for edit buttons in Leaflet popups
 document.addEventListener("click", function (e) {
   if (e.target && e.target.classList.contains("edit-button")) {
