@@ -45,7 +45,7 @@ function submitLeadToSheet(leadData) {
 
 function addMarkers(data) {
   markerCluster.clearLayers();
-  markers.forEach(marker => map.removeLayer(marker));
+  Object.values(markerMap).forEach(marker => map.removeLayer(marker));
   markerMap = {};
 
   data.forEach((row, index) => {
