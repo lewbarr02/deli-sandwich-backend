@@ -477,7 +477,7 @@ function createPreviewPopup(lead, index) {
     <b>ARR:</b> ${lead['ARR'] || ''}<br>
     <b>Obstacle:</b> ${lead['Obstacle'] || ''}<br>
     <b>Self Sourced:</b> ${lead['Self Sourced'] || ''}<br><br>
-    <button class="edit-button" data-lead-id="${lead.id}">✏️ Edit</button>
+    <button class="edit-button" data-lead-index="${index}">✏️ Edit</button>
   `;
   return container;
 }
