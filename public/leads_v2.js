@@ -440,7 +440,7 @@ async function submitEdits(id) {
   };
 
   try {
-    const response = await fetch('https://zippy-balance-production.up.railway.app/update-lead', {
+    const response = await fetch('/update-lead', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
