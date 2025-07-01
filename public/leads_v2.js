@@ -4,7 +4,7 @@ map = L.map('map').setView([37.8, -96], 4);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
 let markerCluster = L.markerClusterGroup();
 let allData = [];
-let markers = [];
+let markerMap = {};
 let usingClusters = true;
 const statusColors = {
   Hot: 'red',
@@ -46,7 +46,7 @@ function submitLeadToSheet(leadData) {
 function addMarkers(data) {
   markerCluster.clearLayers();
   markers.forEach(marker => map.removeLayer(marker));
-  markers = [];
+  markerMap = {};
 
   data.forEach((row, index) => {
     const lat = parseFloat(row['Latitude']);
@@ -61,7 +61,7 @@ function addMarkers(data) {
     marker.on('click', () => {
       marker.bindPopup(createPreviewPopup(row, index)).openPopup();
     });
-      markers.push(marker);
+      markerMap[index] = marker;
 
       if (usingClusters) {
         markerCluster.addLayer(marker);
@@ -491,7 +491,7 @@ function switchToEdit(index) {
   console.log("🛠️ Edit triggered for index:", index);
   const idx = parseInt(index);
   const row = allData[idx];
-  const marker = markers[idx];
+  const marker = markerMap[idx];
 
   if (!row || !marker) {
     console.warn("❌ Lead row or marker not found for index:", idx);
