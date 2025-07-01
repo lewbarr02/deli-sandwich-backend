@@ -5,16 +5,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 
 let markerCluster = L.markerClusterGroup();
 let allData = [];
 let markerMap = {};
-let usingClusters = true;
-const statusColors = {
-  Hot: 'red',
-  Warm: 'orange',
-  Cold: 'blue',
-  'Follow-Up': 'yellow',
-  Converted: 'green',
-  Research: 'black',
-  Unspecified: 'grey'
-};
 
 function getIcon(color) {
   return L.icon({
@@ -426,7 +416,7 @@ function createEditablePopup(lead) {
 
 async function submitEdits(id) {
   const updatedData = {
-  ID: id,
+  id: id,
   Tags: document.getElementById(`tag-${id}`).value,
   Type: document.getElementById(`type-${id}`).value,
   Status: document.getElementById(`status-${id}`).value,
