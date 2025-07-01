@@ -54,11 +54,12 @@ function addMarkers(data) {
     if (!isNaN(lat) && !isNaN(lon)) {
       const color = statusColors[row['Status']] || 'grey';
       const marker = L.marker([lat, lon], { icon: getIcon(color) });
+      marker.leadId = row.id;
+      marker.leadId = row.id;
 
       marker.on('click', () => {
-      const rowWithId = { ...row, id: index };
-      marker.bindPopup(createPreviewPopup(rowWithId, marker)).openPopup();
-    });
+        marker.bindPopup(createPreviewPopup(row, marker)).openPopup();
+      });
       markers.push(marker);
 
       if (usingClusters) {
@@ -475,24 +476,36 @@ function createPreviewPopup(lead, marker) {
     <b>ARR:</b> ${lead['ARR'] || ''}<br>
     <b>Obstacle:</b> ${lead['Obstacle'] || ''}<br>
     <b>Self Sourced:</b> ${lead['Self Sourced'] || ''}<br><br>
-    <button onclick="switchToEdit(${lead.id}, this)">✏️ Edit</button>
+    <button class="edit-button" data-lead-id="${lead.id}">✏️ Edit</button>
   `;
   return container;
 }
 
-function switchToEdit(id, button) {
-  const row = allData.find(l => l.id == id);
-  if (!row) return;
+function switchToEdit(id) {
+  console.log("🛠️ Edit triggered for ID:", id);
 
-  const marker = markers.find(m => {
-    const popup = m.getPopup();
-    if (!popup) return false;
-    const content = popup.getContent();
-    if (!content || typeof content.innerHTML !== 'string') return false;
-    return content.innerHTML.includes(row['Company']);
-  });
+  const row = allData.find(l => String(l.id) === String(id));
+  if (!row) {
+    console.warn("❌ Lead row not found for ID:", id);
+    return;
+  }
 
-  if (!marker) return;
+  const marker = markers.find(m => String(m.leadId) === String(id));
+  if (!marker) {
+    console.warn("❌ Marker not found for ID:", id);
+    return;
+  }
 
+  console.log("✅ Found marker and row, injecting editable popup...");
   marker.setPopupContent(createEditablePopup(row));
+  marker.openPopup();
 }
+
+
+// 🔁 Delegated listener for edit buttons in Leaflet popups
+document.addEventListener("click", function (e) {
+  if (e.target && e.target.classList.contains("edit-button")) {
+    const id = e.target.getAttribute("data-lead-id");
+    switchToEdit(id);
+  }
+});
