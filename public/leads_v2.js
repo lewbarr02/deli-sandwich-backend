@@ -1,4 +1,4 @@
-// leads.js – Clean Rebuild with Presentation Mode, Daily List, and All Filters
+// leads_v2.js – Clean Rebuild with Presentation Mode, Daily List, and All Filters
 console.log("✅ Loaded leads_merged_with_proxy_fix.js");
 map = L.map('map').setView([37.8, -96], 4);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
@@ -58,8 +58,8 @@ function addMarkers(data) {
       marker.leadId = row.id;
 
       marker.on('click', () => {
-        marker.bindPopup(createPreviewPopup(row, marker)).openPopup();
-      });
+      marker.bindPopup(createPreviewPopup({ ...row, id: index }, marker)).openPopup();
+    });
       markers.push(marker);
 
       if (usingClusters) {
