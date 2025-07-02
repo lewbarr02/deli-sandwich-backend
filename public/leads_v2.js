@@ -472,7 +472,19 @@ async function submitEdits(id) {
       // 🔁 Update local memory
       const targetIndex = allData.findIndex(row => (row.id || row.leadIndex) == id);
       if (targetIndex !== -1) {
-        allData[targetIndex] = { ...allData[targetIndex], ...updatedData };
+        allData[targetIndex] = {
+  ...allData[targetIndex],
+  'Tags': updatedData.tags,
+  'Type': updatedData.type,
+  'Status': updatedData.status,
+  'Notes': updatedData.notes,
+  'Website': updatedData.website,
+  'Net New': updatedData.net_new,
+  'Size': updatedData.size,
+  'ARR': updatedData.arr,
+  'Obstacle': updatedData.obstacle,
+  'Self Sourced': updatedData.self_sourced
+};
       }
 
       alert('✅ Lead saved!');
