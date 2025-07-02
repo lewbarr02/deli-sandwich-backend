@@ -489,7 +489,9 @@ if (response.ok) {
 
     if (markerMap[targetIndex]) {
       console.log("🎯 Refreshing popup for marker:", targetIndex);
-      markerMap[targetIndex].setPopupContent(createPreviewPopup(allData[targetIndex], targetIndex));
+      map.closePopup();
+      markerMap[targetIndex].unbindPopup();
+      markerMap[targetIndex].bindPopup(createPreviewPopup(allData[targetIndex], targetIndex)).openPopup();
     } else {
       console.warn("⚠️ Marker not found for index", targetIndex);
     }
