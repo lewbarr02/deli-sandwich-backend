@@ -468,28 +468,9 @@ async function submitEdits(id) {
 
     if (response.ok) {
       console.log("✅ Lead updated successfully");
-
-      // 🔁 Update local memory
-      const targetIndex = allData.findIndex(row => (row.id || row.leadIndex) == id);
-      if (targetIndex !== -1) {
-        allData[targetIndex] = {
-  ...allData[targetIndex],
-  'Tags': updatedData.tags,
-  'Type': updatedData.type,
-  'Status': updatedData.status,
-  'Notes': updatedData.notes,
-  'Website': updatedData.website,
-  'Net New': updatedData.net_new,
-  'Size': updatedData.size,
-  'ARR': updatedData.arr,
-  'Obstacle': updatedData.obstacle,
-  'Self Sourced': updatedData.self_sourced
-};
-      }
-
       alert('✅ Lead saved!');
       closeAllPopups();
-      applyFilters();  // 🔁 Refresh with new values
+      applyFilters();  // ✅ Rebuild pins after saving
     } else {
       alert('❌ Failed to update lead. Backend returned: ' + response.status);
     }
