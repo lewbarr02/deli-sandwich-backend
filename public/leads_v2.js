@@ -466,11 +466,35 @@ async function submitEdits(id) {
       body: JSON.stringify(updatedData)
     });
 
-    if (response.ok) {
-      console.log("✅ Lead updated successfully");
-      alert('✅ Lead saved!');
-      closeAllPopups();
-      applyFilters();  // ✅ Rebuild pins after saving
+    
+if (response.ok) {
+  console.log("✅ Lead updated successfully");
+  const targetIndex = allData.findIndex(row => (row.id || row.leadIndex) == id);
+  if (targetIndex !== -1) {
+    const original = allData[targetIndex];
+    allData[targetIndex] = {
+      ...original,
+      'Tags': updatedData.tags,
+      'Type': updatedData.type,
+      'Status': updatedData.status,
+      'Notes': updatedData.notes,
+      'Website': updatedData.website,
+      'Net New': updatedData.net_new,
+      'Size': updatedData.size,
+      'ARR': updatedData.arr,
+      'Obstacle': updatedData.obstacle,
+      'Self Sourced': updatedData.self_sourced
+    };
+
+    // ✅ Immediately refresh the pin preview content
+    if (markerMap[targetIndex]) {
+      markerMap[targetIndex].setPopupContent(createPreviewPopup(allData[targetIndex], targetIndex));
+    }
+  }
+
+  alert('✅ Lead saved!');
+  closeAllPopups();
+  // ✅ Rebuild pins after saving
     } else {
       alert('❌ Failed to update lead. Backend returned: ' + response.status);
     }
