@@ -444,6 +444,7 @@ async function submitEdits(id) {
       headers: {
         'Content-Type': 'application/json'
       },
+      console.log("📤 Submitting updated data:", updatedData);
       body: JSON.stringify(updatedData)
     });
 
