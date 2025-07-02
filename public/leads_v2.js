@@ -468,9 +468,16 @@ async function submitEdits(id) {
 
     if (response.ok) {
       console.log("✅ Lead updated successfully");
+
+      // 🔁 Update local memory
+      const targetIndex = allData.findIndex(row => (row.id || row.leadIndex) == id);
+      if (targetIndex !== -1) {
+        allData[targetIndex] = { ...allData[targetIndex], ...updatedData };
+      }
+
       alert('✅ Lead saved!');
       closeAllPopups();
-      applyFilters();  // ✅ Rebuild pins after saving
+      applyFilters();  // 🔁 Refresh with new values
     } else {
       alert('❌ Failed to update lead. Backend returned: ' + response.status);
     }
