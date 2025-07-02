@@ -425,18 +425,20 @@ function createEditablePopup(lead) {
 
 async function submitEdits(id) {
   const updatedData = {
-  id: id,
-  Tags: document.getElementById(`tag-${id}`).value,
-  Type: document.getElementById(`type-${id}`).value,
-  Status: document.getElementById(`status-${id}`).value,
-  Notes: document.getElementById(`notes-${id}`).value,
-  Website: document.getElementById(`website-${id}`).value,
-  "Net New": document.getElementById(`netnew-${id}`).value,
-  Size: document.getElementById(`size-${id}`).value,
-  ARR: String(parseFloat(document.getElementById(`arr-${id}`).value) || 0),
-  Obstacle: document.getElementById(`obstacle-${id}`).value,
-  "Self Sourced": document.getElementById(`selfsourced-${id}`).value
-};
+    id: id,
+    Tags: document.getElementById(`tag-${id}`).value,
+    Type: document.getElementById(`type-${id}`).value,
+    Status: document.getElementById(`status-${id}`).value,
+    Notes: document.getElementById(`notes-${id}`).value,
+    Website: document.getElementById(`website-${id}`).value,
+    "Net New": document.getElementById(`netnew-${id}`).value,
+    Size: document.getElementById(`size-${id}`).value,
+    ARR: String(parseFloat(document.getElementById(`arr-${id}`).value) || 0),
+    Obstacle: document.getElementById(`obstacle-${id}`).value,
+    "Self Sourced": document.getElementById(`selfsourced-${id}`).value
+  };
+
+  console.log("📤 Submitting updated data:", updatedData);
 
   try {
     const response = await fetch('/update-lead', {
@@ -444,7 +446,6 @@ async function submitEdits(id) {
       headers: {
         'Content-Type': 'application/json'
       },
-      console.log("📤 Submitting updated data:", updatedData);
       body: JSON.stringify(updatedData)
     });
 
