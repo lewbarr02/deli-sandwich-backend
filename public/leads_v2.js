@@ -54,8 +54,8 @@ function addMarkers(data) {
     if (!isNaN(lat) && !isNaN(lon)) {
       const color = statusColors[row['Status']] || 'grey';
       const marker = L.marker([lat, lon], { icon: getIcon(color) });
-      marker.leadId = row.id;
-      marker.leadId = row.id;
+      marker.leadId = row.id || index;
+      marker.leadId = row.id || index;
 
       marker.leadIndex = index;
     marker.on('click', () => {
@@ -354,11 +354,13 @@ function createEditablePopup(lead) {
   const popup = document.createElement('div');
   popup.className = 'editable-popup';
 
+  const leadId = lead.id || lead.leadIndex;
+
   popup.innerHTML = `
     <strong>${lead.company}</strong><br><br>
 
     <label>Tag:</label>
-    <select id="tag-${lead.id}">
+    <select id="tag-${leadId}">
       <option value="Appfolio" ${lead.tags === 'Appfolio' ? 'selected' : ''}>Appfolio</option>
       <option value="Building Link" ${lead.tags === 'Building Link' ? 'selected' : ''}>Building Link</option>
       <option value="Buildium" ${lead.tags === 'Buildium' ? 'selected' : ''}>Buildium</option>
@@ -374,14 +376,14 @@ function createEditablePopup(lead) {
     </select><br>
 
     <label>Type:</label>
-    <select id="type-${lead.id}">
+    <select id="type-${leadId}">
       <option value="PMC" ${lead.type === 'PMC' ? 'selected' : ''}>PMC</option>
       <option value="SMA" ${lead.type === 'SMA' ? 'selected' : ''}>SMA</option>
       <option value="Other" ${lead.type === 'Other' ? 'selected' : ''}>Other</option>
     </select><br>
 
     <label>Status:</label>
-    <select id="status-${lead.id}">
+    <select id="status-${leadId}">
       <option value="Converted" ${lead.status === 'Converted' ? 'selected' : ''}>Converted</option>
       <option value="Hot" ${lead.status === 'Hot' ? 'selected' : ''}>Hot</option>
       <option value="Warm" ${lead.status === 'Warm' ? 'selected' : ''}>Warm</option>
@@ -392,54 +394,56 @@ function createEditablePopup(lead) {
     </select><br>
 
     <label>Notes:</label>
-    <textarea id="notes-${lead.id}">${lead.notes || ''}</textarea><br>
+    <textarea id="notes-${leadId}">${lead.notes || ''}</textarea><br>
 
     <label>Website:</label>
-    <input type="text" id="website-${lead.id}" value="${lead.website || ''}"><br>
+    <input type="text" id="website-${leadId}" value="${lead.website || ''}"><br>
 
     <label>Net New:</label>
-    <select id="netnew-${lead.id}">
+    <select id="netnew-${leadId}">
       <option value="Yes" ${lead.net_new === 'Yes' ? 'selected' : ''}>Yes</option>
       <option value="No" ${lead.net_new === 'No' ? 'selected' : ''}>No</option>
     </select><br>
 
     <label>Size:</label>
-    <input type="text" id="size-${lead.id}" value="${lead.size || ''}"><br>
+    <input type="text" id="size-${leadId}" value="${lead.size || ''}"><br>
 
     <label>ARR:</label>
-    <input type="number" id="arr-${lead.id}" value="${lead.arr || ''}"><br>
+    <input type="number" id="arr-${leadId}" value="${lead.arr || ''}"><br>
 
     <label>Obstacle:</label>
-    <input type="text" id="obstacle-${lead.id}" value="${lead.obstacle || ''}"><br>
+    <input type="text" id="obstacle-${leadId}" value="${lead.obstacle || ''}"><br>
 
     <label>Self Sourced:</label>
-    <select id="selfsourced-${lead.id}">
+    <select id="selfsourced-${leadId}">
       <option value="Yes" ${lead.self_sourced === 'Yes' ? 'selected' : ''}>Yes</option>
       <option value="No" ${lead.self_sourced === 'No' ? 'selected' : ''}>No</option>
     </select><br>
 
-    <button onclick="submitEdits(${lead.id})">Save</button>
+    <button onclick="submitEdits(${leadId})">Save</button>
   `;
 
   return popup;
 }
 
 async function submitEdits(id) {
+  console.log("🧠 Incoming ID:", id);
+
   const updatedData = {
     id: id,
-    Tags: document.getElementById(`tag-${id}`).value,
-    Type: document.getElementById(`type-${id}`).value,
-    Status: document.getElementById(`status-${id}`).value,
-    Notes: document.getElementById(`notes-${id}`).value,
-    Website: document.getElementById(`website-${id}`).value,
-    "Net New": document.getElementById(`netnew-${id}`).value,
-    Size: document.getElementById(`size-${id}`).value,
-    ARR: String(parseFloat(document.getElementById(`arr-${id}`).value) || 0),
-    Obstacle: document.getElementById(`obstacle-${id}`).value,
-    "Self Sourced": document.getElementById(`selfsourced-${id}`).value
+    tags: document.getElementById(`tag-${id}`)?.value || "",
+    type: document.getElementById(`type-${id}`)?.value || "",
+    status: document.getElementById(`status-${id}`)?.value || "",
+    notes: document.getElementById(`notes-${id}`)?.value || "",
+    website: document.getElementById(`website-${id}`)?.value || "",
+    net_new: document.getElementById(`netnew-${id}`)?.value || "",
+    size: document.getElementById(`size-${id}`)?.value || "",
+    arr: parseFloat(document.getElementById(`arr-${id}`)?.value || 0),
+    obstacle: document.getElementById(`obstacle-${id}`)?.value || "",
+    self_sourced: document.getElementById(`selfsourced-${id}`)?.value || ""
   };
 
-  console.log("📤 Submitting updated data:", updatedData);
+  console.log("📤 Normalized payload for backend:", updatedData);
 
   try {
     const response = await fetch('/update-lead', {
@@ -453,10 +457,10 @@ async function submitEdits(id) {
     if (response.ok) {
       alert('Lead updated successfully!');
     } else {
-      alert('Failed to update lead.');
+      alert('❌ Failed to update lead. Backend returned:', response.status);
     }
   } catch (err) {
-    console.error(err);
+    console.error("❌ Network error during save:", err);
     alert('Error connecting to backend.');
   }
 }
