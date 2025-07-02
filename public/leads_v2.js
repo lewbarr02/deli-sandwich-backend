@@ -471,25 +471,30 @@ if (response.ok) {
   console.log("✅ Lead updated successfully");
   const targetIndex = allData.findIndex(row => (row.id || row.leadIndex) == id);
   if (targetIndex !== -1) {
-    const original = allData[targetIndex];
+    console.log("🔁 Patching memory for index:", targetIndex);
+    const current = allData[targetIndex];
     allData[targetIndex] = {
-      ...original,
-      'Tags': updatedData.tags,
-      'Type': updatedData.type,
-      'Status': updatedData.status,
-      'Notes': updatedData.notes,
-      'Website': updatedData.website,
-      'Net New': updatedData.net_new,
-      'Size': updatedData.size,
-      'ARR': updatedData.arr,
-      'Obstacle': updatedData.obstacle,
-      'Self Sourced': updatedData.self_sourced
+      ...current,
+      'Tags': updatedData.tags || current['Tags'] || '',
+      'Type': updatedData.type || current['Type'] || '',
+      'Status': updatedData.status || current['Status'] || '',
+      'Notes': updatedData.notes || current['Notes'] || '',
+      'Website': updatedData.website || current['Website'] || '',
+      'Net New': updatedData.net_new || current['Net New'] || '',
+      'Size': updatedData.size || current['Size'] || '',
+      'ARR': updatedData.arr ?? current['ARR'] ?? 0,
+      'Obstacle': updatedData.obstacle || current['Obstacle'] || '',
+      'Self Sourced': updatedData.self_sourced || current['Self Sourced'] || ''
     };
 
-    // ✅ Immediately refresh the pin preview content
     if (markerMap[targetIndex]) {
+      console.log("🎯 Refreshing popup for marker:", targetIndex);
       markerMap[targetIndex].setPopupContent(createPreviewPopup(allData[targetIndex], targetIndex));
+    } else {
+      console.warn("⚠️ Marker not found for index", targetIndex);
     }
+  } else {
+    console.warn("⚠️ Could not find targetIndex in allData for ID:", id);
   }
 
   alert('✅ Lead saved!');
