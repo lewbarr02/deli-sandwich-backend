@@ -54,8 +54,8 @@ function addMarkers(data) {
     if (!isNaN(lat) && !isNaN(lon)) {
       const color = statusColors[row['Status']] || 'grey';
       const marker = L.marker([lat, lon], { icon: getIcon(color) });
-      marker.leadId = row.id || index;
-      marker.leadId = row.id || index;
+      marker.leadId = row.id;
+      marker.leadId = row.id;
 
       marker.leadIndex = index;
     marker.on('click', () => {
@@ -425,7 +425,6 @@ function createEditablePopup(lead) {
 }
 
 async function submitEdits(id) {
-  console.log(\"🧠 Incoming ID:\", id);
   const updatedData = {
     id: id,
     Tags: document.getElementById(`tag-${id}`).value,
