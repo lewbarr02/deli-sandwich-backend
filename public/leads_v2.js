@@ -492,6 +492,11 @@ if (response.ok) {
       map.closePopup();
       markerMap[targetIndex].unbindPopup();
       markerMap[targetIndex].bindPopup(createPreviewPopup(allData[targetIndex], targetIndex)).openPopup();
+      markerMap[targetIndex].off('click');
+      markerMap[targetIndex].on('click', () => {
+        markerMap[targetIndex].bindPopup(createPreviewPopup(allData[targetIndex], targetIndex)).openPopup();
+      });
+
     } else {
       console.warn("⚠️ Marker not found for index", targetIndex);
     }
@@ -557,7 +562,8 @@ function switchToEdit(index) {
 
   console.log("✅ Found marker and row, injecting editable popup...");
   row.leadIndex = idx;
-  marker.setPopupContent(createEditablePopup(row));
+  marker.unbindPopup();
+  marker.bindPopup(createEditablePopup(row)).openPopup();
   marker.openPopup();
 }
 
