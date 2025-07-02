@@ -470,6 +470,7 @@ async function submitEdits(id) {
       console.log("✅ Lead updated successfully");
       alert('✅ Lead saved!');
       closeAllPopups();
+      applyFilters();  // ✅ Rebuild pins after saving
     } else {
       alert('❌ Failed to update lead. Backend returned: ' + response.status);
     }
