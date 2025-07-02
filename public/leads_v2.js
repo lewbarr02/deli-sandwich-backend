@@ -5,6 +5,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 
 let markerCluster = L.markerClusterGroup();
 let allData = [];
 let markerMap = {};
+let usingClusters = true;  // ✅ Fix: declare for cluster toggle
 const statusColors = {
   Hot: 'red',
   Warm: 'orange',
