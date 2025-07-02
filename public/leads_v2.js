@@ -429,11 +429,23 @@ function createEditablePopup(lead) {
 async function submitEdits(id) {
   console.log("🧠 Incoming ID:", id);
 
+  const status = document.getElementById(`status-${id}`)?.value || "";
+  const saveButton = event?.target;
+  if (!status.trim()) {
+    alert("⚠️ Status is required.");
+    return;
+  }
+
+  if (saveButton) {
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+  }
+
   const updatedData = {
     id: id,
     tags: document.getElementById(`tag-${id}`)?.value || "",
     type: document.getElementById(`type-${id}`)?.value || "",
-    status: document.getElementById(`status-${id}`)?.value || "",
+    status: status,
     notes: document.getElementById(`notes-${id}`)?.value || "",
     website: document.getElementById(`website-${id}`)?.value || "",
     net_new: document.getElementById(`netnew-${id}`)?.value || "",
@@ -455,13 +467,20 @@ async function submitEdits(id) {
     });
 
     if (response.ok) {
-      alert('Lead updated successfully!');
+      console.log("✅ Lead updated successfully");
+      alert('✅ Lead saved!');
+      closeAllPopups();
     } else {
-      alert('❌ Failed to update lead. Backend returned:', response.status);
+      alert('❌ Failed to update lead. Backend returned: ' + response.status);
     }
   } catch (err) {
     console.error("❌ Network error during save:", err);
     alert('Error connecting to backend.');
+  } finally {
+    if (saveButton) {
+      saveButton.disabled = false;
+      saveButton.textContent = "Save";
+    }
   }
 }
 
@@ -505,7 +524,6 @@ function switchToEdit(index) {
   }
 
   console.log("✅ Found marker and row, injecting editable popup...");
-  row.leadIndex = idx;
   marker.setPopupContent(createEditablePopup(row));
   marker.openPopup();
 }
@@ -518,3 +536,7 @@ document.addEventListener("click", function (e) {
     switchToEdit(index);
   }
 });
+
+function closeAllPopups() {
+  map.closePopup();
+}
