@@ -505,6 +505,7 @@ function switchToEdit(index) {
   }
 
   console.log("✅ Found marker and row, injecting editable popup...");
+  row.leadIndex = idx;
   marker.setPopupContent(createEditablePopup(row));
   marker.openPopup();
 }
