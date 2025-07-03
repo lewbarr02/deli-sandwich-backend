@@ -553,3 +553,12 @@ function createPreviewPopup(lead, index) {
 function closeAllPopups() {
   map.closePopup();
 }
+
+
+// 🔁 Delegated listener for edit buttons in Leaflet popups
+document.addEventListener("click", function (e) {
+  if (e.target && e.target.classList.contains("edit-button")) {
+    const index = e.target.getAttribute("data-lead-index");
+    switchToEdit(index);
+  }
+});
