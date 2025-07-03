@@ -548,7 +548,7 @@ function createPreviewPopup(lead, index) {
     <button class="edit-button" data-lead-index="\${index}">✏️ Edit</button>
   \`;
   return container;
-});
+}
 
 function closeAllPopups() {
   map.closePopup();
