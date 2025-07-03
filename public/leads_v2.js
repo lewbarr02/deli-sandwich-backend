@@ -531,7 +531,7 @@ function createPreviewPopup(lead, index) {
     ? new Date(lastUpdated).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
     : 'Unknown';
 
-  container.innerHTML = \`
+  container.innerHTML = `
     <strong>\${lead['Company']}</strong><br>
     <em>\${lead['City']}, \${lead['State']}</em><br><br>
     <b>Tag:</b> \${lead['Tags'] || ''}<br>
@@ -546,7 +546,7 @@ function createPreviewPopup(lead, index) {
     <b>Self Sourced:</b> \${lead['Self Sourced'] || ''}<br>
     <b>🕒 Last Updated:</b> \${formattedDate}<br><br>
     <button class="edit-button" data-lead-index="\${index}">✏️ Edit</button>
-  \`;
+  `;
   return container;
 }
 
