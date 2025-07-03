@@ -484,11 +484,8 @@ if (response.ok) {
       'Size': updatedData.size || current['Size'] || '',
       'ARR': updatedData.arr ?? current['ARR'] ?? 0,
       'Obstacle': updatedData.obstacle || current['Obstacle'] || '',
-      'Self Sourced': updatedData.self_sourced || current['Self Sourced'] || ''
-    };
-
-    if (markerMap[targetIndex]) {
-      console.log("🎯 Refreshing popup for marker:", targetIndex);
+      'Self Sourced': updatedData.self_sourced || current['Self Sourced'] || '',
+      'Last Updated': result.lead.last_updated || current['Last Updated'] || '', targetIndex);
       map.closePopup();
       markerMap[targetIndex].unbindPopup();
       markerMap[targetIndex].bindPopup(createPreviewPopup(allData[targetIndex], targetIndex)).openPopup();
