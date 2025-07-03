@@ -42,7 +42,8 @@ router.post('/', async (req, res) => {
         size = EXCLUDED.size,
         arr = EXCLUDED.arr,
         obstacle = EXCLUDED.obstacle,
-        self_sourced = EXCLUDED.self_sourced
+        self_sourced = EXCLUDED.self_sourced,
+        last_updated = NOW()
       RETURNING *;
       `,
       [
