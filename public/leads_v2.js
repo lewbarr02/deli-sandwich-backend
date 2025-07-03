@@ -532,20 +532,20 @@ function createPreviewPopup(lead, index) {
     : 'Unknown';
 
   container.innerHTML = `
-    <strong>\${lead['Company']}</strong><br>
-    <em>\${lead['City']}, \${lead['State']}</em><br><br>
-    <b>Tag:</b> \${lead['Tags'] || ''}<br>
-    <b>Type:</b> \${lead['Type'] || ''}<br>
-    <b>Status:</b> \${lead['Status'] || ''}<br>
-    <b>Notes:</b> \${lead['Notes'] || ''}<br>
-    <b>Website:</b> \${lead['Website'] || ''}<br>
-    <b>Net New:</b> \${lead['Net New'] || ''}<br>
-    <b>Size:</b> \${lead['Size'] || ''}<br>
-    <b>ARR:</b> \${lead['ARR'] || ''}<br>
-    <b>Obstacle:</b> \${lead['Obstacle'] || ''}<br>
-    <b>Self Sourced:</b> \${lead['Self Sourced'] || ''}<br>
-    <b>🕒 Last Updated:</b> \${formattedDate}<br><br>
-    <button class="edit-button" data-lead-index="\${index}">✏️ Edit</button>
+    <strong>${lead['Company']}</strong><br>
+    <em>${lead['City']}, ${lead['State']}</em><br><br>
+    <b>Tag:</b> ${lead['Tags'] || ''}<br>
+    <b>Type:</b> ${lead['Type'] || ''}<br>
+    <b>Status:</b> ${lead['Status'] || ''}<br>
+    <b>Notes:</b> ${lead['Notes'] || ''}<br>
+    <b>Website:</b> ${lead['Website'] || ''}<br>
+    <b>Net New:</b> ${lead['Net New'] || ''}<br>
+    <b>Size:</b> ${lead['Size'] || ''}<br>
+    <b>ARR:</b> ${lead['ARR'] || ''}<br>
+    <b>Obstacle:</b> ${lead['Obstacle'] || ''}<br>
+    <b>Self Sourced:</b> ${lead['Self Sourced'] || ''}<br>
+    <b>🕒 Last Updated:</b> ${formattedDate}<br><br>
+    <button class="edit-button" data-lead-index="${index}">✏️ Edit</button>
   `;
   return container;
 }
