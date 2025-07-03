@@ -526,54 +526,28 @@ if (response.ok) {
 
 function createPreviewPopup(lead, index) {
   const container = document.createElement('div');
-  container.innerHTML = `
-    <strong>${lead['Company']}</strong><br>
-    <em>${lead['City']}, ${lead['State']}</em><br><br>
-    <b>Tag:</b> ${lead['Tags'] || ''}<br>
-    <b>Type:</b> ${lead['Type'] || ''}<br>
-    <b>Status:</b> ${lead['Status'] || ''}<br>
-    <b>Notes:</b> ${lead['Notes'] || ''}<br>
-    <b>Website:</b> ${lead['Website'] || ''}<br>
-    <b>Net New:</b> ${lead['Net New'] || ''}<br>
-    <b>Size:</b> ${lead['Size'] || ''}<br>
-    <b>ARR:</b> ${lead['ARR'] || ''}<br>
-    <b>Obstacle:</b> ${lead['Obstacle'] || ''}<br>
-    <b>Self Sourced:</b> ${lead['Self Sourced'] || ''}<br><br>
-    <button class="edit-button" data-lead-index="${index}">✏️ Edit</button>
-  `;
+  const lastUpdated = lead['Last Updated'] || lead['last_updated'] || '';
+  const formattedDate = lastUpdated
+    ? new Date(lastUpdated).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    : 'Unknown';
+
+  container.innerHTML = \`
+    <strong>\${lead['Company']}</strong><br>
+    <em>\${lead['City']}, \${lead['State']}</em><br><br>
+    <b>Tag:</b> \${lead['Tags'] || ''}<br>
+    <b>Type:</b> \${lead['Type'] || ''}<br>
+    <b>Status:</b> \${lead['Status'] || ''}<br>
+    <b>Notes:</b> \${lead['Notes'] || ''}<br>
+    <b>Website:</b> \${lead['Website'] || ''}<br>
+    <b>Net New:</b> \${lead['Net New'] || ''}<br>
+    <b>Size:</b> \${lead['Size'] || ''}<br>
+    <b>ARR:</b> \${lead['ARR'] || ''}<br>
+    <b>Obstacle:</b> \${lead['Obstacle'] || ''}<br>
+    <b>Self Sourced:</b> \${lead['Self Sourced'] || ''}<br>
+    <b>🕒 Last Updated:</b> \${formattedDate}<br><br>
+    <button class="edit-button" data-lead-index="\${index}">✏️ Edit</button>
+  \`;
   return container;
-}
-
-
-  
-
-
-
-function switchToEdit(index) {
-  console.log("🛠️ Edit triggered for index:", index);
-  const idx = parseInt(index);
-  const row = allData[idx];
-  const marker = markerMap[idx];
-
-  if (!row || !marker) {
-    console.warn("❌ Lead row or marker not found for index:", idx);
-    return;
-  }
-
-  console.log("✅ Found marker and row, injecting editable popup...");
-  row.leadIndex = idx;
-  marker.unbindPopup();
-  marker.bindPopup(createEditablePopup(row)).openPopup();
-  marker.openPopup();
-}
-
-
-// 🔁 Delegated listener for edit buttons in Leaflet popups
-document.addEventListener("click", function (e) {
-  if (e.target && e.target.classList.contains("edit-button")) {
-    const index = e.target.getAttribute("data-lead-index");
-    switchToEdit(index);
-  }
 });
 
 function closeAllPopups() {
