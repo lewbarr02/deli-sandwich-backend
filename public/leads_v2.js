@@ -550,6 +550,26 @@ function createPreviewPopup(lead, index) {
   return container;
 }
 
+
+function switchToEdit(index) {
+  console.log("🛠️ Edit triggered for index:", index);
+  const idx = parseInt(index);
+  const row = allData[idx];
+  const marker = markerMap[idx];
+
+  if (!row || !marker) {
+    console.warn("❌ Lead row or marker not found for index:", idx);
+    return;
+  }
+
+  console.log("✅ Found marker and row, injecting editable popup...");
+  row.leadIndex = idx;
+  marker.unbindPopup();
+  marker.bindPopup(createEditablePopup(row)).openPopup();
+  marker.openPopup();
+}
+
+
 function closeAllPopups() {
   map.closePopup();
 }
